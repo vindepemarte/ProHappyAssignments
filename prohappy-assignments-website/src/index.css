@@ -1,0 +1,357 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, #4ECDC4 0%, #2E86AB 100%);
+  background-attachment: fixed;
+  color: #2C3E50;
+  min-height: 100vh;
+}
+
+/* Joyful gradient backgrounds */
+.gradient-bg {
+  background: linear-gradient(135deg, #4ECDC4 0%, #2E86AB 100%);
+}
+
+.gradient-bg-warm {
+  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 100%);
+}
+
+.gradient-bg-cool {
+  background: linear-gradient(135deg, #A8E6CF 0%, #4ECDC4 100%);
+}
+
+/* Enhanced buttons with brand colors */
+.btn-primary {
+  background: linear-gradient(135deg, #4ECDC4 0%, #2E86AB 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 100%);
+  color: #2C3E50;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 230, 109, 0.3);
+  border: none;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 230, 109, 0.4);
+}
+
+/* Colorful form inputs */
+.form-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4ECDC4;
+  box-shadow: 0 0 0 4px rgba(78, 205, 196, 0.1);
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.form-input:hover {
+  border-color: #2E86AB;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2C3E50;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.form-label::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 30px;
+  height: 3px;
+  background: linear-gradient(90deg, #4ECDC4, #2E86AB);
+  border-radius: 2px;
+}
+
+.form-error {
+  color: #FF6B6B;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Success states */
+.form-success {
+  color: #10b981;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Card styles with glassmorphism */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.card-colorful {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(168, 230, 207, 0.1) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(78, 205, 196, 0.2);
+  box-shadow: 0 8px 32px rgba(78, 205, 196, 0.1);
+}
+
+/* Mobile-first responsive enhancements */
+@media (max-width: 768px) {
+  /* Touch-friendly button sizing */
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  /* Enhanced form inputs for mobile */
+  .form-input {
+    min-height: 44px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* Better spacing for mobile forms */
+  .form-field {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Touch-friendly checkboxes and radio buttons */
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 20px;
+    min-height: 20px;
+  }
+
+  /* Improved tap targets */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  /* Better mobile navigation */
+  .mobile-nav-item {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .btn-primary,
+  .btn-secondary {
+    border: 2px solid currentColor;
+  }
+  
+  .form-input {
+    border-width: 2px;
+  }
+}
+
+/* Focus improvements for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #1d0fdb;
+  outline-offset: 2px;
+}
+
+/* Responsive breakpoint testing */
+@media (max-width: 639px) {
+  /* Extra small screens - phones */
+  .responsive-test::before {
+    content: "XS: < 640px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #ef4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  /* Small screens - large phones */
+  .responsive-test::before {
+    content: "SM: 640px - 767px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #f59e0b;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Medium screens - tablets */
+  .responsive-test::before {
+    content: "MD: 768px - 1023px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* Large screens - small desktops */
+  .responsive-test::before {
+    content: "LG: 1024px - 1279px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1535px) {
+  /* Extra large screens - large desktops */
+  .responsive-test::before {
+    content: "XL: 1280px - 1535px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #8b5cf6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+@media (min-width: 1536px) {
+  /* 2XL screens - very large desktops */
+  .responsive-test::before {
+    content: "2XL: ≥ 1536px";
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #ec4899;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  }
+}
+
+/* Viewport meta tag validation */
+@media (max-width: 768px) {
+  /* Ensure proper scaling on mobile */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  /* Prevent horizontal scrolling */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure touch targets are accessible */
+  button, 
+  input, 
+  select, 
+  textarea,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve form usability on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+}
