@@ -13,14 +13,18 @@ Your ProHappyAssignments app is now at the repository root and ready for 1-click
 3. **Select "Git Repository"**
 4. **Connect this GitHub repository**
 
-### Step 2: Configure (Just 2 settings!)
+### Step 2: Configure Build Settings
+
+In Coolify, set these build settings:
 
 ```yaml
+Build Pack: Dockerfile
+Dockerfile: Dockerfile.production
 Port: 80
 Health Check: /health.json
 ```
 
-**Note**: Coolify will automatically detect the Dockerfile thanks to the `.coolify` config file!
+**Important**: Make sure to select "Dockerfile" as the build pack to avoid Nixpacks!
 
 ### Step 3: Environment Variables
 
