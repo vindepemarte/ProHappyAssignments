@@ -1,0 +1,3 @@
+# Coolify configuration
+# Force Coolify to use Dockerfile instead of Nixpacks
+buildpack=dockerfile

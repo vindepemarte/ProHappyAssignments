@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --silent
+# Install dependencies without postinstall scripts (skip Playwright)
+RUN npm ci --silent --ignore-scripts
 
 # Copy source code
 COPY . .
