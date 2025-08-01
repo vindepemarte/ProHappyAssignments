@@ -450,37 +450,50 @@ export const AssignmentForm: React.FC = () => {
             />
           )}
 
-          {/* Submission Error Display */}
+          {/* Submission Error Display - Improved UX */}
           {submissionError && (
-            isNetworkError ? (
-              <NetworkErrorHandler
-                error={submissionError}
-                onRetry={handleRetry}
-                retryCount={retryCount}
-                maxRetries={3}
-                className="mb-4"
-              />
-            ) : (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                <div className="flex items-start">
-                  <svg
-                    className="w-5 h-5 text-red-600 mt-0.5 mr-2 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <div>
-                    <p className="text-sm text-red-800 font-medium">Submission Failed</p>
-                    <p className="text-sm text-red-700 mt-1">{submissionError}</p>
+            <div className="card bg-orange-50 border-l-4 border-orange-400 p-4 mb-6">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span className="text-orange-600 text-sm">⚠️</span>
                   </div>
                 </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-orange-800 mb-1">
+                    Submission Issue
+                  </h3>
+                  <p className="text-sm text-orange-700 mb-3">
+                    {submissionError}
+                  </p>
+                  {isNetworkError && (
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        onClick={handleRetry}
+                        disabled={retryCount >= 3}
+                        className="btn-secondary text-sm py-2 px-4 disabled:opacity-50"
+                      >
+                        {retryCount >= 3 ? 'Max retries reached' : `Try Again (${retryCount + 1}/3)`}
+                      </button>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="btn-primary text-sm py-2 px-4"
+                      >
+                        Refresh Page
+                      </button>
+                    </div>
+                  )}
+                  {!isNetworkError && (
+                    <button
+                      onClick={() => setSubmissionError('')}
+                      className="text-sm text-orange-600 hover:text-orange-800 underline"
+                    >
+                      Dismiss
+                    </button>
+                  )}
+                </div>
               </div>
-            )
+            </div>
           )}
 
           <div className="text-center">

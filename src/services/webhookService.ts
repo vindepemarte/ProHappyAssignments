@@ -244,16 +244,24 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
     };
 
     const payload = webhookConfig.createN8nPayload('assignment', payloadData);
-    const url = webhookConfig.getAssignmentWebhookUrl();
     
-    const response = await webhookClient.post(url, payload);
+    // Use local API endpoint to avoid CORS issues
+    const response = await axios.post('/api/submit', {
+      ...payload,
+      formType: 'assignment'
+    }, {
+      timeout: webhookConfig.getTimeout(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     // Handle successful response
     if (response.status >= 200 && response.status < 300) {
       return {
         success: true,
-        message: 'Assignment submitted successfully! You will receive an email with updates.',
-        orderId: response.data?.orderId || `ASG-${Date.now()}`,
+        message: response.data.message || 'Assignment submitted successfully! You will receive an email with updates.',
+        orderId: response.data.orderId || `ASG-${Date.now()}`,
       };
     } else {
       throw new Error(`Unexpected response status: ${response.status}`);
@@ -276,16 +284,24 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
     };
 
     const payload = webhookConfig.createN8nPayload('changes', payloadData);
-    const url = webhookConfig.getChangesWebhookUrl();
     
-    const response = await webhookClient.post(url, payload);
+    // Use local API endpoint to avoid CORS issues
+    const response = await axios.post('/api/submit', {
+      ...payload,
+      formType: 'changes'
+    }, {
+      timeout: webhookConfig.getTimeout(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     // Handle successful response
     if (response.status >= 200 && response.status < 300) {
       return {
         success: true,
-        message: 'Change request submitted successfully! You will receive an email with updates.',
-        orderId: response.data?.orderId || `CHG-${Date.now()}`,
+        message: response.data.message || 'Change request submitted successfully! You will receive an email with updates.',
+        orderId: response.data.orderId || `CHG-${Date.now()}`,
       };
     } else {
       throw new Error(`Unexpected response status: ${response.status}`);
@@ -307,16 +323,24 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
     };
 
     const payload = webhookConfig.createN8nPayload('worker', payloadData);
-    const url = webhookConfig.getWorkerWebhookUrl();
     
-    const response = await webhookClient.post(url, payload);
+    // Use local API endpoint to avoid CORS issues
+    const response = await axios.post('/api/submit', {
+      ...payload,
+      formType: 'worker'
+    }, {
+      timeout: webhookConfig.getTimeout(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     // Handle successful response
     if (response.status >= 200 && response.status < 300) {
       return {
         success: true,
-        message: 'Work submitted successfully! You will receive an email with updates.',
-        orderId: response.data?.orderId || `WRK-${Date.now()}`,
+        message: response.data.message || 'Work submitted successfully! You will receive an email with updates.',
+        orderId: response.data.orderId || `WRK-${Date.now()}`,
       };
     } else {
       throw new Error(`Unexpected response status: ${response.status}`);

@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { URL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,7 +24,88 @@ const mimeTypes = {
   '.woff2': 'font/woff2',
 };
 
+// API handler for form submissions
+const handleApiRequest = async (req, res) => {
+  const url = new URL(req.url, `http://localhost:${port}`);
+  
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+  
+  if (url.pathname === '/api/submit' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', async () => {
+      try {
+        const formData = JSON.parse(body);
+        
+        // Forward the request to the actual webhook
+        const webhookUrl = getWebhookUrl(formData.formType);
+        
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'ProHappyAssignments-Server/1.0.0'
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+          const result = await response.json().catch(() => ({}));
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: true,
+            message: 'Form submitted successfully! You will receive an email with updates.',
+            orderId: result.orderId || `${formData.formType.toUpperCase()}-${Date.now()}`
+          }));
+        } else {
+          throw new Error(`Webhook responded with status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('API submission error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Submission failed. Please try again later.'
+        }));
+      }
+    });
+    return;
+  }
+  
+  // 404 for unknown API routes
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'API endpoint not found' }));
+};
+
+// Get webhook URL based on form type
+const getWebhookUrl = (formType) => {
+  const webhookUrls = {
+    assignment: process.env.VITE_ASSIGNMENT_WEBHOOK_URL || 'https://webhook.site/test-assignment',
+    changes: process.env.VITE_CHANGES_WEBHOOK_URL || 'https://webhook.site/test-changes',
+    worker: process.env.VITE_WORKER_WEBHOOK_URL || 'https://webhook.site/test-worker'
+  };
+  return webhookUrls[formType] || webhookUrls.assignment;
+};
+
 const server = createServer((req, res) => {
+  // Handle API requests
+  if (req.url.startsWith('/api/')) {
+    return handleApiRequest(req, res);
+  }
+  
   // Health check endpoint
   if (req.url === '/health') {
     res.writeHead(200, { 
