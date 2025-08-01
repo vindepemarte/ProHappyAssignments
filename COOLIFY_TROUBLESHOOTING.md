@@ -16,7 +16,7 @@ In Coolify dashboard:
 ### Solution 2: Use Dockerfile.production
 
 We created a special `Dockerfile.production` that:
-- ✅ Removes the problematic postinstall script
+- ✅ Sets environment variables to skip Playwright postinstall
 - ✅ Builds without Playwright dependencies
 - ✅ Uses multi-stage build with Nginx
 

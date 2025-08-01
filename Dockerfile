@@ -1,19 +1,18 @@
 # Multi-stage build for production deployment
 FROM node:20-alpine AS builder
 
+# Set environment variables to skip Playwright installation
+ENV NODE_ENV=production
+ENV CI=true
+ENV DOCKER_BUILD=true
+
 # Set working directory
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Remove postinstall script to avoid Playwright installation
-RUN npm pkg delete scripts.postinstall
-
-# Install dependencies
-RUN npm ci --silent --only=production --ignore-scripts
-
-# Install dev dependencies needed for build
+# Install dependencies (postinstall will be skipped due to env vars)
 RUN npm ci --silent
 
 # Copy source code

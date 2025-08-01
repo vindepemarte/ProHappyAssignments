@@ -1,16 +1,18 @@
 # Production Dockerfile - Explicitly avoid Nixpacks
 FROM node:20-alpine AS builder
 
+# Set environment variables to skip Playwright installation
+ENV NODE_ENV=production
+ENV CI=true
+ENV DOCKER_BUILD=true
+
 # Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Temporarily remove postinstall script
-RUN sed -i '/"postinstall":/d' package.json
-
-# Install dependencies
+# Install dependencies (postinstall will be skipped due to env vars)
 RUN npm ci --silent
 
 # Copy source code

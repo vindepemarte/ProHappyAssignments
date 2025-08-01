@@ -24,12 +24,13 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "playwright:install": "playwright install",
+    "playwright:install-deps": "playwright install --with-deps",
     "deploy:build": "npm run type-check && npm run lint && npm run test && npm run build:production",
     "deploy:preview": "npm run deploy:build && npm run preview",
     "deploy:check": "npm run format:check && npm run lint && npm run type-check && npm run test",
     "clean": "rm -rf dist node_modules/.vite",
     "clean:all": "rm -rf dist node_modules/.vite node_modules package-lock.json",
-    "postinstall": "playwright install --with-deps"
+    "postinstall": "node -e \"if (process.env.NODE_ENV !== 'production' && process.env.CI !== 'true' && process.env.DOCKER_BUILD !== 'true') { require('child_process').execSync('playwright install --with-deps', {stdio: 'inherit'}) }\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
