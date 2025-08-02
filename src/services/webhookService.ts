@@ -121,89 +121,60 @@ class WebhookClient {
 // Create webhook client instance (currently unused but kept for future use)
 // const webhookClient = new WebhookClient();
 
-// File serialization interface
-interface SerializedFile {
-  name: string;
+// File information interface for JSON metadata
+interface FileInfo {
+  fieldName: string;
+  originalName: string;
   size: number;
   type: string;
   lastModified: number;
-  data: string | null; // Base64 encoded file data
 }
 
-// Assignment webhook payload data
-interface AssignmentPayloadData {
-  accessCode: string;
-  fullName: string;
-  email: string;
-  moduleName: string;
-  wordCount: number;
-  orderDeadline: string;
-  guidance?: string;
-  files: SerializedFile[];
+// JSON data structure sent to webhook
+interface WebhookJsonData {
+  formType: string;
+  timestamp: string;
+  formData: Record<string, any>;
+  files: FileInfo[];
+  metadata: {
+    userAgent: string;
+    referrer?: string;
+    environment: string;
+    version: string;
+    fileCount: number;
+  };
 }
 
-// Changes webhook payload data
-interface ChangesPayloadData {
-  referenceCode: string;
-  email: string;
-  orderReferenceNumber: string;
-  notes: string;
-  deadlineChanges?: string;
-  files: SerializedFile[];
-}
-
-// Worker webhook payload data
-interface WorkerPayloadData {
-  referenceCode: string;
-  email: string;
-  orderReferenceNumber: string;
-  notesForClient: string;
-  files: SerializedFile[];
-}
-
-// Convert File objects to base64 format for transmission
-const serializeFiles = async (files: File[]): Promise<SerializedFile[]> => {
-  const serializedFiles: SerializedFile[] = [];
-  
-  for (const file of files) {
-    try {
-      const base64Data = await fileToBase64(file);
-      serializedFiles.push({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified,
-        data: base64Data, // Add binary data as base64
-      });
-    } catch (error) {
-      console.error(`Failed to serialize file ${file.name}:`, error);
-      // Include file without data if conversion fails
-      serializedFiles.push({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: file.lastModified,
-        data: null,
-      });
-    }
-  }
-  
-  return serializedFiles;
+// Keep files as File objects for FormData transmission
+const prepareFiles = (files: File[]): File[] => {
+  return files || [];
 };
 
-// Helper function to convert File to base64
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
-      const base64Data = result.split(',')[1];
-      resolve(base64Data);
-    };
-    reader.onerror = error => reject(error);
-  });
+// Create JSON data structure for webhook
+const createWebhookJsonData = (
+  formType: string,
+  formData: Record<string, any>,
+  files: File[]
+): WebhookJsonData => {
+  return {
+    formType,
+    timestamp: new Date().toISOString(),
+    formData,
+    files: files.map((file, index) => ({
+      fieldName: `file_${index}`,
+      originalName: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+    })),
+    metadata: {
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+      referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+      environment: webhookConfig.getEnvironment(),
+      version: '1.0.0',
+      fileCount: files.length,
+    },
+  };
 };
 
 // Enhanced error handling function
@@ -254,7 +225,10 @@ const handleWebhookError = (error: unknown, formType: string): WebhookResponse =
 // Assignment form submission
 export const submitAssignmentForm = async (data: AssignmentFormData): Promise<WebhookResponse> => {
   try {
-    const payloadData: AssignmentPayloadData = {
+    const files = prepareFiles(data.assignmentFiles || []);
+    
+    // Create structured JSON data
+    const jsonData = createWebhookJsonData('assignment', {
       accessCode: data.accessCode,
       fullName: data.fullName,
       email: data.email,
@@ -262,20 +236,28 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
       wordCount: data.wordCount,
       orderDeadline: data.orderDeadline,
       guidance: data.guidance,
-      files: await serializeFiles(data.assignmentFiles || []),
-    };
-
-    const payload = webhookConfig.createN8nPayload('assignment', payloadData);
+    }, files);
+    
+    // Create FormData for multipart upload
+    const formData = new FormData();
+    
+    // Add JSON data as a file
+    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
+      type: 'application/json' 
+    });
+    formData.append('data.json', jsonBlob, 'data.json');
+    
+    // Add actual files
+    files.forEach((file, index) => {
+      formData.append(`file_${index}`, file, file.name);
+    });
 
     // In development, use local API. In production, call webhook directly
     if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', {
-        ...payload,
-        formType: 'assignment'
-      }, {
+      const response = await axios.post('http://localhost:3001/api/submit', formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       
@@ -288,10 +270,10 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
     } else {
       // Production: Call webhook directly
       const webhookUrl = webhookConfig.getAssignmentWebhookUrl();
-      const response = await axios.post(webhookUrl, payload, {
+      const response = await axios.post(webhookUrl, formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       
@@ -312,26 +294,37 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
 // Changes form submission
 export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookResponse> => {
   try {
-    const payloadData: ChangesPayloadData = {
+    const files = prepareFiles(data.uploadFiles || []);
+    
+    // Create structured JSON data
+    const jsonData = createWebhookJsonData('changes', {
       referenceCode: data.referenceCode,
       email: data.email,
       orderReferenceNumber: data.orderReferenceNumber,
       notes: data.notes,
       deadlineChanges: data.deadlineChanges,
-      files: await serializeFiles(data.uploadFiles || []),
-    };
-
-    const payload = webhookConfig.createN8nPayload('changes', payloadData);
+    }, files);
+    
+    // Create FormData for multipart upload
+    const formData = new FormData();
+    
+    // Add JSON data as a file
+    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
+      type: 'application/json' 
+    });
+    formData.append('data.json', jsonBlob, 'data.json');
+    
+    // Add actual files
+    files.forEach((file, index) => {
+      formData.append(`file_${index}`, file, file.name);
+    });
 
     // In development, use local API. In production, call webhook directly
     if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', {
-        ...payload,
-        formType: 'changes'
-      }, {
+      const response = await axios.post('http://localhost:3001/api/submit', formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       
@@ -344,10 +337,10 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
     } else {
       // Production: Call webhook directly
       const webhookUrl = webhookConfig.getChangesWebhookUrl();
-      const response = await axios.post(webhookUrl, payload, {
+      const response = await axios.post(webhookUrl, formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       
@@ -368,25 +361,36 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
 // Worker form submission
 export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookResponse> => {
   try {
-    const payloadData: WorkerPayloadData = {
+    const files = prepareFiles(data.uploadSection || []);
+    
+    // Create structured JSON data
+    const jsonData = createWebhookJsonData('worker', {
       referenceCode: data.referenceCode,
       email: data.email,
       orderReferenceNumber: data.orderReferenceNumber,
       notesForClient: data.notesForClient,
-      files: await serializeFiles(data.uploadSection || []),
-    };
-
-    const payload = webhookConfig.createN8nPayload('worker', payloadData);
+    }, files);
+    
+    // Create FormData for multipart upload
+    const formData = new FormData();
+    
+    // Add JSON data as a file
+    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
+      type: 'application/json' 
+    });
+    formData.append('data.json', jsonBlob, 'data.json');
+    
+    // Add actual files
+    files.forEach((file, index) => {
+      formData.append(`file_${index}`, file, file.name);
+    });
 
     // In development, use local API. In production, call webhook directly
     if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', {
-        ...payload,
-        formType: 'worker'
-      }, {
+      const response = await axios.post('http://localhost:3001/api/submit', formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       
@@ -399,10 +403,10 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
     } else {
       // Production: Call webhook directly
       const webhookUrl = webhookConfig.getWorkerWebhookUrl();
-      const response = await axios.post(webhookUrl, payload, {
+      const response = await axios.post(webhookUrl, formData, {
         timeout: webhookConfig.getTimeout(),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'multipart/form-data',
         },
       });
       

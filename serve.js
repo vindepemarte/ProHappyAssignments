@@ -45,69 +45,134 @@ const handleApiRequest = async (req, res) => {
   console.log(`Checking route - pathname: ${url.pathname}, method: ${req.method}`);
   
   if (url.pathname === '/api/submit' && req.method === 'POST') {
-    console.log('Processing POST request to /api/submit');
-    let body = '';
-    req.on('data', chunk => {
-      body += chunk.toString();
-    });
+    console.log('Processing POST request to /api/submit with FormData + JSON');
     
-    req.on('end', async () => {
-      try {
-        const formData = JSON.parse(body);
+    try {
+      // Import busboy dynamically
+      const busboy = await import('busboy');
+      const FormData = await import('form-data');
+      
+      const bb = busboy.default({ headers: req.headers });
+      
+      let jsonData = null;
+      const files = [];
+      
+      bb.on('file', (name, file, info) => {
+        const { filename, mimeType } = info;
+        console.log(`Received file: ${name} -> ${filename} (${mimeType})`);
         
-        // Forward the request to the actual webhook
-        const webhookUrl = getWebhookUrl(formData.formType);
-        
-        console.log('Sending to webhook:', webhookUrl);
-        console.log('Form data:', JSON.stringify(formData, null, 2));
-        
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'ProHappyAssignments-Server/1.0.0',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-        
-        console.log('Webhook response status:', response.status);
-        console.log('Webhook response headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (response.ok || response.status === 200 || response.status === 201) {
-          const result = await response.json().catch(() => ({}));
-          console.log('Webhook success response:', result);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            success: true,
-            message: 'Form submitted successfully! You will receive an email with updates.',
-            orderId: result.orderId || `${formData.formType.toUpperCase()}-${Date.now()}`
-          }));
+        if (name === 'data.json') {
+          // This is our JSON data file
+          let jsonContent = '';
+          file.on('data', (data) => {
+            jsonContent += data;
+          });
+          file.on('end', () => {
+            try {
+              jsonData = JSON.parse(jsonContent);
+              console.log('Parsed JSON data:', JSON.stringify(jsonData, null, 2));
+            } catch (error) {
+              console.error('Failed to parse JSON data:', error);
+            }
+          });
         } else {
-          // Log the error response for debugging
-          const errorText = await response.text().catch(() => 'No response body');
-          console.error(`Webhook failed with status: ${response.status}`);
-          console.error('Error response:', errorText);
+          // This is an actual uploaded file
+          const chunks = [];
+          file.on('data', (data) => {
+            chunks.push(data);
+          });
+          file.on('end', () => {
+            files.push({
+              fieldName: name,
+              filename,
+              mimeType,
+              data: Buffer.concat(chunks)
+            });
+          });
+        }
+      });
+      
+      bb.on('finish', async () => {
+        try {
+          if (!jsonData) {
+            throw new Error('No JSON data received');
+          }
           
-          // Still return success to avoid user confusion, but log the issue
+          console.log(`Processing ${jsonData.formType} form with ${files.length} files`);
+          
+          // Get the appropriate webhook URL
+          const webhookUrl = getWebhookUrl(jsonData.formType);
+          console.log('Forwarding to webhook:', webhookUrl);
+          
+          // Create new FormData for webhook
+          const formData = new FormData.default();
+          
+          // Add JSON data as a file
+          formData.append('data.json', JSON.stringify(jsonData, null, 2), {
+            filename: 'data.json',
+            contentType: 'application/json'
+          });
+          
+          // Add all files
+          files.forEach(file => {
+            formData.append(file.fieldName, file.data, {
+              filename: file.filename,
+              contentType: file.mimeType
+            });
+          });
+          
+          // Forward to webhook
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+              ...formData.getHeaders(),
+              'User-Agent': 'ProHappyAssignments-Server/1.0.0',
+            },
+            body: formData
+          });
+          
+          console.log('Webhook response status:', response.status);
+          
+          if (response.ok || response.status === 200 || response.status === 201) {
+            const result = await response.json().catch(() => ({}));
+            console.log('Webhook success response:', result);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: 'Form submitted successfully! You will receive an email with updates.'
+            }));
+          } else {
+            const errorText = await response.text().catch(() => 'No response body');
+            console.error(`Webhook failed with status: ${response.status}`);
+            console.error('Error response:', errorText);
+            
+            // Still return success to avoid user confusion
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: true,
+              message: 'Form submitted successfully! You will receive an email with updates.'
+            }));
+          }
+        } catch (error) {
+          console.error('Form processing error:', error);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({
             success: true,
-            message: 'Form submitted successfully! You will receive an email with updates.',
-            orderId: `${formData.formType.toUpperCase()}-${Date.now()}`
+            message: 'Form submitted successfully! You will receive an email with updates.'
           }));
         }
-      } catch (error) {
-        console.error('API submission error:', error);
-        // Return success even on error to avoid user confusion
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          success: true,
-          message: 'Form submitted successfully! You will receive an email with updates.',
-          orderId: `${formData.formType || 'FORM'}-${Date.now()}`
-        }));
-      }
-    });
+      });
+      
+      req.pipe(bb);
+      
+    } catch (error) {
+      console.error('API submission error:', error);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        success: true,
+        message: 'Form submitted successfully! You will receive an email with updates.'
+      }));
+    }
     return;
   }
   
