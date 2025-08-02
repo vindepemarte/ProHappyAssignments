@@ -55,6 +55,64 @@ const handleApiRequest = async (req, res) => {
     return;
   }
   
+  if (url.pathname === '/api/google-submit' && req.method === 'POST') {
+    console.log('Processing secure Google submission via server proxy');
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', async () => {
+      try {
+        const formData = JSON.parse(body);
+        console.log(`Processing ${formData.formType} form with ${formData.files?.length || 0} files`);
+        
+        // Your SECURE Google Apps Script URL (not exposed to client)
+        const SECURE_GOOGLE_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL || 
+          'https://script.google.com/macros/s/AKfycbyJlgIWIaYVhJvxelpg6wOX4FaFz_LUe7W08vFG8e5kR8KMyEbj9wJKDmzgd3yPtSUV/exec';
+        
+        // Add server-side validation/security here if needed
+        // For example, rate limiting, access code validation, etc.
+        
+        // Forward to Google Apps Script from server (no CORS issues)
+        const response = await fetch(SECURE_GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        console.log('Google Apps Script response:', result);
+        
+        if (result.success) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: true,
+            message: result.message || 'Form submitted successfully!',
+            filesUploaded: result.filesUploaded || 0
+          }));
+        } else {
+          console.error('Google Apps Script error:', result);
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: false,
+            message: result.message || 'Submission failed'
+          }));
+        }
+      } catch (error) {
+        console.error('Server proxy error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Server error occurred'
+        }));
+      }
+    });
+    return;
+  }
+  
   if (url.pathname === '/api/google-auth' && req.method === 'POST') {
     console.log('Processing Google authentication request');
     let body = '';

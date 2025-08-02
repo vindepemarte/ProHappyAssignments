@@ -1,10 +1,6 @@
-// Simple Google Apps Script integration - NO MORE API HEADACHES!
+// Server-side Google integration - SECURE & WORKING!
 import axios from 'axios';
 import type { AssignmentFormData, ChangesFormData, WorkerFormData } from '../types';
-
-interface GoogleAppsScriptConfig {
-  webAppUrl: string;
-}
 
 interface FileData {
   name: string;
@@ -15,25 +11,11 @@ interface FileData {
 type FormData = AssignmentFormData | ChangesFormData | WorkerFormData;
 
 class GoogleDriveService {
-  private config: GoogleAppsScriptConfig;
-
   constructor() {
-    // TEMPORARY HARDCODED URL - REPLACE WITH ENV VAR WHEN WORKING
-    const hardcodedUrl = 'https://script.google.com/macros/s/AKfycbyJlgIWIaYVhJvxelpg6wOX4FaFz_LUe7W08vFG8e5kR8KMyEbj9wJKDmzgd3yPtSUV/exec';
-
-    this.config = {
-      // Try environment variable first, then fallback to hardcoded
-      webAppUrl: import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || hardcodedUrl,
-    };
-
-    // Debug logging
-    console.log('GoogleDriveService initialized');
-    console.log('Environment variable VITE_GOOGLE_APPS_SCRIPT_URL:', import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL);
-    console.log('Using webAppUrl:', this.config.webAppUrl);
-    console.log('All environment variables:', import.meta.env);
+    console.log('GoogleDriveService initialized - using server-side proxy');
   }
 
-  // Convert File to base64 for Google Apps Script
+  // Convert File to base64 for server processing
   private async fileToBase64(file: File): Promise<FileData> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -53,11 +35,7 @@ class GoogleDriveService {
 
   async submitForm(data: FormData, formType: string): Promise<void> {
     try {
-      console.log(`Submitting ${formType} form to Google Apps Script...`);
-
-      if (!this.config.webAppUrl) {
-        throw new Error('Google Apps Script URL not configured. Please set VITE_GOOGLE_APPS_SCRIPT_URL environment variable.');
-      }
+      console.log(`Submitting ${formType} form via server proxy...`);
 
       // Convert files to base64
       let files: FileData[] = [];
@@ -75,7 +53,7 @@ class GoogleDriveService {
         );
       }
 
-      // Prepare data for Google Apps Script
+      // Prepare data for server
       const payload = {
         formType,
         ...data,
@@ -83,36 +61,34 @@ class GoogleDriveService {
         timestamp: new Date().toISOString(),
       };
 
-      console.log(`Sending ${files.length} files to Google Apps Script`);
+      console.log(`Sending ${files.length} files to server proxy`);
 
-      // Send to Google Apps Script
-      const response = await axios.post(this.config.webAppUrl, payload, {
+      // Send to our secure server endpoint
+      const response = await axios.post('/api/google-submit', payload, {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 seconds timeout
+        timeout: 60000, // 60 seconds timeout for file uploads
       });
 
       if (response.data.success) {
-        console.log('Google Apps Script success:', response.data);
+        console.log('Server proxy success:', response.data);
       } else {
-        throw new Error(response.data.message || 'Google Apps Script returned error');
+        throw new Error(response.data.message || 'Server returned error');
       }
     } catch (error) {
-      console.error('Google Apps Script error:', error);
+      console.error('Server proxy error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       throw new Error(`Failed to submit form: ${errorMessage}`);
     }
   }
 
-  // Legacy methods for compatibility - now just call submitForm
+  // Legacy methods for compatibility
   async uploadFiles(_files: File[], _formType: string): Promise<string[]> {
-    // This method is no longer used, but kept for compatibility
     return [];
   }
 
   async addRowToSheet(_data: FormData, _formType: string): Promise<void> {
-    // This method is no longer used, but kept for compatibility
     // Everything is handled by submitForm now
   }
 }
