@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,svg}'],
         globIgnores: ['**/landing.png', '**/forms-type.png'],
-        maximumFileSizeToCacheInBytes: 3000000, // 3MB
+        maximumFileSizeToCacheInBytes: 2000000, // 2MB (reduced)
         runtimeCaching: [
           {
             urlPattern: /\.(?:png|jpg|jpeg|gif|webp)$/,
@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => {
             options: {
               cacheName: 'images-cache',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                maxEntries: 20, // Reduced from 50
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days (reduced from 30)
               },
             },
           },
@@ -79,6 +79,13 @@ export default defineConfig(({ mode }) => {
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: 'dist',

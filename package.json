@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "NODE_ENV=development node serve.js",
+    "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
+    "clear-cache": "rm -rf node_modules/.vite && rm -rf dist",
     "build": "vite build",
     "build:production": "NODE_ENV=production vite build",
     "build:staging": "NODE_ENV=staging vite build",
@@ -58,6 +61,7 @@
     "@typescript-eslint/parser": "^8.38.0",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/ui": "^3.2.4",
+    "concurrently": "^9.2.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",

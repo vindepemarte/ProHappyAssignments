@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const distPath = join(__dirname, 'dist');
-const port = 3000;
+const port = process.env.NODE_ENV === 'development' ? 3001 : 3000;
 
 const mimeTypes = {
   '.html': 'text/html',

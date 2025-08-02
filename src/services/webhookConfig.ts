@@ -3,6 +3,7 @@ import type { EnvironmentConfig } from '../types';
 // Webhook configuration class
 export class WebhookConfig {
   private static instance: WebhookConfig;
+  private static configLogged: boolean = false;
   private config: EnvironmentConfig;
   private isDebugMode: boolean;
 
@@ -43,7 +44,7 @@ export class WebhookConfig {
       }
     });
 
-    if (this.isDebugMode) {
+    if (this.isDebugMode && !WebhookConfig.configLogged) {
       console.log('Webhook Configuration:', {
         assignmentUrl: this.config.VITE_ASSIGNMENT_WEBHOOK_URL,
         changesUrl: this.config.VITE_CHANGES_WEBHOOK_URL,
@@ -51,6 +52,7 @@ export class WebhookConfig {
         environment: this.config.VITE_ENVIRONMENT,
         maxFileSize: this.config.VITE_FILE_UPLOAD_MAX_SIZE,
       });
+      WebhookConfig.configLogged = true;
     }
   }
 
@@ -135,8 +137,8 @@ export class WebhookConfig {
       timestamp: new Date().toISOString(),
       data,
       metadata: {
-        userAgent: navigator.userAgent,
-        referrer: document.referrer || undefined,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown',
+        referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
         environment: this.getEnvironment(),
         version: '1.0.0', // Application version
       },

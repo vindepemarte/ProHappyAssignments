@@ -30,38 +30,23 @@ class WebhookLogger {
     this.shouldLog = webhookConfig.shouldLogRequests();
   }
 
-  logRequest(url: string, payload: any, attempt: number, maxAttempts: number): void {
+  logRequest(url: string, _payload: any, attempt: number, maxAttempts: number): void {
     if (!this.shouldLog) return;
-    
-    console.group(`🚀 Webhook Request - Attempt ${attempt}/${maxAttempts}`);
-    console.log('URL:', url);
-    console.log('Payload:', payload);
-    console.log('Timestamp:', new Date().toISOString());
-    console.groupEnd();
+
+    console.log(`🚀 Webhook Request ${attempt}/${maxAttempts} to ${url}`);
   }
 
-  logResponse(url: string, response: any, attempt: number): void {
+  logResponse(_url: string, response: any, attempt: number): void {
     if (!this.shouldLog) return;
-    
-    console.group(`✅ Webhook Response - Attempt ${attempt}`);
-    console.log('URL:', url);
-    console.log('Status:', response.status);
-    console.log('Data:', response.data);
-    console.log('Headers:', response.headers);
-    console.groupEnd();
+
+    console.log(`✅ Webhook Response ${attempt}: ${response.status}`);
   }
 
-  logError(url: string, error: AxiosError, attempt: number, willRetry: boolean): void {
+  logError(_url: string, error: AxiosError, attempt: number, willRetry: boolean): void {
     if (!this.shouldLog) return;
-    
+
     const icon = willRetry ? '⚠️' : '❌';
-    console.group(`${icon} Webhook Error - Attempt ${attempt}`);
-    console.log('URL:', url);
-    console.log('Error:', error.message);
-    console.log('Status:', error.response?.status);
-    console.log('Response Data:', error.response?.data);
-    console.log('Will Retry:', willRetry);
-    console.groupEnd();
+    console.log(`${icon} Webhook Error ${attempt}: ${error.message} (${error.response?.status})`);
   }
 
   logRetry(delay: number, attempt: number): void {
@@ -73,7 +58,7 @@ class WebhookLogger {
 const logger = new WebhookLogger();
 
 // Sleep utility for retry delays
-const sleep = (ms: number): Promise<void> => 
+const sleep = (ms: number): Promise<void> =>
   new Promise(resolve => setTimeout(resolve, ms));
 
 // Enhanced HTTP client with retry logic
@@ -83,9 +68,9 @@ class WebhookClient {
     data: T,
     retryConfig: RetryConfig = defaultRetryConfig
   ): Promise<any> {
-    let lastError: AxiosError | Error;
+    let lastError: AxiosError;
     const maxAttempts = retryConfig.maxRetries + 1;
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const requestConfig = {
@@ -97,33 +82,34 @@ class WebhookClient {
         };
 
         logger.logRequest(url, data, attempt + 1, maxAttempts);
-        
+
         const response = await axios.post(url, data, requestConfig);
-        
+
         logger.logResponse(url, response, attempt + 1);
-        
+
         return response;
       } catch (error) {
-        lastError = error as AxiosError;
-        const willRetry = attempt < retryConfig.maxRetries && retryConfig.shouldRetry(lastError);
-        
-        logger.logError(url, lastError, attempt + 1, willRetry);
-        
+        const axiosError = error as AxiosError;
+        lastError = axiosError;
+        const willRetry = attempt < retryConfig.maxRetries && retryConfig.shouldRetry(axiosError);
+
+        logger.logError(url, axiosError, attempt + 1, willRetry);
+
         // If this is the last attempt or we shouldn't retry, throw the error
         if (!willRetry) {
-          throw lastError;
+          throw axiosError;
         }
-        
+
         // Calculate exponential backoff delay with jitter
         const baseDelay = retryConfig.retryDelay * Math.pow(2, attempt);
         const jitter = Math.random() * 0.1 * baseDelay; // Add up to 10% jitter
         const delay = Math.floor(baseDelay + jitter);
-        
+
         logger.logRetry(delay, attempt);
         await sleep(delay);
       }
     }
-    
+
     throw lastError!;
   }
 
@@ -132,8 +118,8 @@ class WebhookClient {
   }
 }
 
-// Create webhook client instance
-const webhookClient = new WebhookClient();
+// Create webhook client instance (currently unused but kept for future use)
+// const webhookClient = new WebhookClient();
 
 // File serialization interface
 interface SerializedFile {
@@ -187,7 +173,7 @@ const serializeFiles = (files: File[]): SerializedFile[] => {
 // Enhanced error handling function
 const handleWebhookError = (error: unknown, formType: string): WebhookResponse => {
   console.error(`${formType} form submission error:`, error);
-  
+
   if (error instanceof AxiosError) {
     // Network or HTTP errors
     if (error.code === 'ECONNABORTED') {
@@ -196,12 +182,12 @@ const handleWebhookError = (error: unknown, formType: string): WebhookResponse =
         message: 'Request timed out after multiple attempts. Please try again later.',
       };
     }
-    
+
     if (error.response) {
       // Server responded with error status
       const status = error.response.status;
       const message = error.response.data?.message || error.response.data?.error || 'Server error occurred';
-      
+
       if (status >= 400 && status < 500) {
         return {
           success: false,
@@ -221,7 +207,7 @@ const handleWebhookError = (error: unknown, formType: string): WebhookResponse =
       };
     }
   }
-  
+
   // Generic error fallback
   return {
     success: false,
@@ -244,9 +230,10 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
     };
 
     const payload = webhookConfig.createN8nPayload('assignment', payloadData);
-    
+
     // Use local API endpoint to avoid CORS issues
-    const response = await axios.post('/api/submit', {
+    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
+    const response = await axios.post(apiUrl, {
       ...payload,
       formType: 'assignment'
     }, {
@@ -284,9 +271,10 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
     };
 
     const payload = webhookConfig.createN8nPayload('changes', payloadData);
-    
+
     // Use local API endpoint to avoid CORS issues
-    const response = await axios.post('/api/submit', {
+    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
+    const response = await axios.post(apiUrl, {
       ...payload,
       formType: 'changes'
     }, {
@@ -323,9 +311,10 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
     };
 
     const payload = webhookConfig.createN8nPayload('worker', payloadData);
-    
+
     // Use local API endpoint to avoid CORS issues
-    const response = await axios.post('/api/submit', {
+    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
+    const response = await axios.post(apiUrl, {
       ...payload,
       formType: 'worker'
     }, {
