@@ -223,29 +223,13 @@ const handleWebhookError = (error: unknown, formType: string): WebhookResponse =
   };
 };
 
-// Assignment form submission - Direct Google Drive + Sheets
+// Assignment form submission - Simple Google Apps Script
 export const submitAssignmentForm = async (data: AssignmentFormData): Promise<WebhookResponse> => {
   try {
-    const files = prepareFiles(data.assignmentFiles || []);
+    console.log('Submitting assignment form...');
     
-    // Upload files to Google Drive
-    let fileUrls: string[] = [];
-    if (files.length > 0) {
-      console.log(`Uploading ${files.length} files to Google Drive...`);
-      fileUrls = await googleDriveService.uploadFiles(files, 'assignment');
-      console.log('Files uploaded successfully:', fileUrls);
-    }
-    
-    // Prepare data for Google Sheet
-    const sheetData = {
-      ...data,
-      assignmentFiles: fileUrls.join(', '), // Comma-separated URLs
-    };
-    
-    // Add row to Google Sheet
-    console.log('Adding row to Google Sheet...');
-    await googleDriveService.addRowToSheet(sheetData, 'assignment');
-    console.log('Row added successfully to Google Sheet');
+    // Submit everything to Google Apps Script (handles files + sheet automatically)
+    await googleDriveService.submitForm(data, 'assignment');
     
     return {
       success: true,
@@ -260,29 +244,13 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
   }
 };
 
-// Changes form submission - Direct Google Drive + Sheets
+// Changes form submission - Simple Google Apps Script
 export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookResponse> => {
   try {
-    const files = prepareFiles(data.uploadFiles || []);
+    console.log('Submitting changes form...');
     
-    // Upload files to Google Drive
-    let fileUrls: string[] = [];
-    if (files.length > 0) {
-      console.log(`Uploading ${files.length} files to Google Drive...`);
-      fileUrls = await googleDriveService.uploadFiles(files, 'changes');
-      console.log('Files uploaded successfully:', fileUrls);
-    }
-    
-    // Prepare data for Google Sheet
-    const sheetData = {
-      ...data,
-      uploadFiles: fileUrls.join(', '), // Comma-separated URLs
-    };
-    
-    // Add row to Google Sheet
-    console.log('Adding row to Google Sheet...');
-    await googleDriveService.addRowToSheet(sheetData, 'changes');
-    console.log('Row added successfully to Google Sheet');
+    // Submit everything to Google Apps Script (handles files + sheet automatically)
+    await googleDriveService.submitForm(data, 'changes');
     
     return {
       success: true,
@@ -297,29 +265,13 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
   }
 };
 
-// Worker form submission - Direct Google Drive + Sheets
+// Worker form submission - Simple Google Apps Script
 export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookResponse> => {
   try {
-    const files = prepareFiles(data.uploadSection || []);
+    console.log('Submitting worker form...');
     
-    // Upload files to Google Drive
-    let fileUrls: string[] = [];
-    if (files.length > 0) {
-      console.log(`Uploading ${files.length} files to Google Drive...`);
-      fileUrls = await googleDriveService.uploadFiles(files, 'worker');
-      console.log('Files uploaded successfully:', fileUrls);
-    }
-    
-    // Prepare data for Google Sheet
-    const sheetData = {
-      ...data,
-      uploadSection: fileUrls.join(', '), // Comma-separated URLs
-    };
-    
-    // Add row to Google Sheet
-    console.log('Adding row to Google Sheet...');
-    await googleDriveService.addRowToSheet(sheetData, 'worker');
-    console.log('Row added successfully to Google Sheet');
+    // Submit everything to Google Apps Script (handles files + sheet automatically)
+    await googleDriveService.submitForm(data, 'worker');
     
     return {
       success: true,
