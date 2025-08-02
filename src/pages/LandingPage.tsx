@@ -13,7 +13,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="bg-white">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Hero Section */}
         <div className="relative overflow-hidden">
           <div className="container-mobile">

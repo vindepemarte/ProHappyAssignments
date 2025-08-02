@@ -53,17 +53,25 @@ const handleApiRequest = async (req, res) => {
         // Forward the request to the actual webhook
         const webhookUrl = getWebhookUrl(formData.formType);
         
+        console.log('Sending to webhook:', webhookUrl);
+        console.log('Form data:', JSON.stringify(formData, null, 2));
+        
         const response = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'ProHappyAssignments-Server/1.0.0'
+            'User-Agent': 'ProHappyAssignments-Server/1.0.0',
+            'Accept': 'application/json'
           },
           body: JSON.stringify(formData)
         });
         
+        console.log('Webhook response status:', response.status);
+        console.log('Webhook response headers:', Object.fromEntries(response.headers.entries()));
+        
         if (response.ok || response.status === 200 || response.status === 201) {
           const result = await response.json().catch(() => ({}));
+          console.log('Webhook success response:', result);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({
             success: true,
@@ -71,8 +79,12 @@ const handleApiRequest = async (req, res) => {
             orderId: result.orderId || `${formData.formType.toUpperCase()}-${Date.now()}`
           }));
         } else {
-          // Even if webhook fails, we'll return success to avoid user confusion
-          console.warn(`Webhook responded with status: ${response.status}, but continuing...`);
+          // Log the error response for debugging
+          const errorText = await response.text().catch(() => 'No response body');
+          console.error(`Webhook failed with status: ${response.status}`);
+          console.error('Error response:', errorText);
+          
+          // Still return success to avoid user confusion, but log the issue
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({
             success: true,
@@ -102,9 +114,9 @@ const handleApiRequest = async (req, res) => {
 // Get webhook URL based on form type
 const getWebhookUrl = (formType) => {
   const webhookUrls = {
-    assignment: process.env.VITE_ASSIGNMENT_WEBHOOK_URL || 'https://webhook.site/test-assignment',
-    changes: process.env.VITE_CHANGES_WEBHOOK_URL || 'https://webhook.site/test-changes',
-    worker: process.env.VITE_WORKER_WEBHOOK_URL || 'https://webhook.site/test-worker'
+    assignment: process.env.VITE_ASSIGNMENT_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/client',
+    changes: process.env.VITE_CHANGES_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/changes',
+    worker: process.env.VITE_WORKER_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/worker'
   };
   return webhookUrls[formType] || webhookUrls.assignment;
 };

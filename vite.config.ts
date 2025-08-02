@@ -60,6 +60,12 @@ export default defineConfig(({ mode }) => {
             type: 'image/png',
             purpose: 'any maskable',
           },
+          {
+            src: '/logo.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
         ],
       },
     }),
