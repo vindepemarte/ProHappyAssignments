@@ -24,7 +24,7 @@ test.describe('Assignment Form E2E Tests', () => {
     await expect(page.getByText('Access Code Verification')).toBeVisible()
     
     // Enter valid access code
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Form should unlock
     await expect(page.getByLabelText(/full name/i)).toBeVisible()
@@ -77,14 +77,14 @@ test.describe('Assignment Form E2E Tests', () => {
     await expect(page.getByText(/invalid access code/i)).toBeVisible()
     
     // Test valid code
-    await page.fill('input[placeholder*="code"]', 'ABC12')
+    await page.fill('input[placeholder*="code"]', 'IVA98')
     await page.click('button:has-text("Validate Code")')
     await expect(page.getByLabelText(/full name/i)).toBeVisible()
   })
 
   test('should validate required form fields', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Try to submit without filling required fields
     await helpers.submitForm()
@@ -97,7 +97,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should validate email format', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Fill invalid email
     await page.fill('input[name="email"]', 'invalid-email')
@@ -109,7 +109,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should handle file upload validation', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Create an oversized file (mock)
     const largeFilePath = await helpers.createTestFile('large.pdf', 'x'.repeat(15 * 1024 * 1024)) // 15MB
@@ -126,7 +126,7 @@ test.describe('Assignment Form E2E Tests', () => {
     await helpers.mockWebhookResponse(false)
     
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Fill minimum required fields
     await page.fill('input[name="fullName"]', 'John Doe')
@@ -149,7 +149,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should show loading states during submission', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Fill form
     await page.fill('input[name="fullName"]', 'John Doe')
@@ -180,7 +180,7 @@ test.describe('Assignment Form E2E Tests', () => {
     await helpers.checkMobileResponsiveness()
     
     // Form should still be functional
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     await expect(page.getByLabelText(/full name/i)).toBeVisible()
     
     // Mobile form fields should be touch-friendly
@@ -199,7 +199,7 @@ test.describe('Assignment Form E2E Tests', () => {
     await helpers.testKeyboardNavigation()
     
     // Check form labels and ARIA attributes
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     const formFields = await page.locator('input, textarea, select').all()
     for (const field of formFields) {
@@ -213,7 +213,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should handle multiple file uploads', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Create multiple test files
     const file1Path = await helpers.createTestFile('document1.pdf', 'Content 1')
@@ -232,7 +232,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should allow file removal', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Upload a file
     const testFilePath = await helpers.createTestFile('test.pdf', 'Test content')
@@ -251,7 +251,7 @@ test.describe('Assignment Form E2E Tests', () => {
 
   test('should preserve form data during validation', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Fill some form data
     await page.fill('input[name="fullName"]', 'John Doe')

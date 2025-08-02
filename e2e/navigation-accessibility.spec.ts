@@ -105,7 +105,7 @@ test.describe('Navigation and Accessibility E2E Tests', () => {
 
   test('should display proper error states with ARIA attributes', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Try to submit form without required fields
     await helpers.submitForm()
@@ -232,7 +232,7 @@ test.describe('Navigation and Accessibility E2E Tests', () => {
 
   test('should maintain state during navigation', async ({ page }) => {
     await helpers.navigateToForms()
-    await helpers.fillAccessCode('ABC12')
+    await helpers.fillAccessCode('IVA98')
     
     // Fill some form data
     await page.fill('input[name="fullName"]', 'John Doe')

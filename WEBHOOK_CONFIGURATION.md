@@ -38,7 +38,7 @@ VITE_ENVIRONMENT=production
   "formType": "assignment",
   "timestamp": "2025-01-31T12:00:00.000Z",
   "data": {
-    "accessCode": "ABC12",
+    "accessCode": "IVA98",
     "fullName": "John Doe",
     "email": "john.doe@example.com",
     "moduleName": "Computer Science 101",
@@ -284,7 +284,7 @@ If your n8n instance requires CORS configuration:
 
 2. **Update environment variables**:
    ```env
-   VITE_ASSIGNMENT_WEBHOOK_URL=https://abc123.ngrok.io/webhook/assignment
+   VITE_ASSIGNMENT_WEBHOOK_URL=https://IVA983.ngrok.io/webhook/assignment
    ```
 
 ### Production Testing

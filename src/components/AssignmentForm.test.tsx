@@ -61,7 +61,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {
@@ -78,7 +78,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     // Should show loading state briefly
@@ -97,7 +97,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {
@@ -125,7 +125,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {
@@ -155,7 +155,7 @@ describe('AssignmentForm', () => {
     await waitFor(() => {
       expect(mockSubmitAssignmentForm).toHaveBeenCalledWith(
         expect.objectContaining({
-          accessCode: 'ABC12',
+          accessCode: 'IVA98',
           fullName: 'John Doe',
           email: 'john@example.com',
           moduleName: 'Computer Science 101',
@@ -180,7 +180,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {
@@ -226,7 +226,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {
@@ -274,7 +274,7 @@ describe('AssignmentForm', () => {
     const codeInput = screen.getByLabelText(/access code/i)
     const validateButton = screen.getByRole('button', { name: /validate code/i })
     
-    await user.type(codeInput, 'ABC12')
+    await user.type(codeInput, 'IVA98')
     await user.click(validateButton)
     
     await waitFor(() => {

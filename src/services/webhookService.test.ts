@@ -171,7 +171,7 @@ describe('WebhookService', () => {
           formType: 'changes',
           data: expect.objectContaining({
             email: 'john@example.com',
-            referenceCode: 'ABC12',
+            referenceCode: 'IVA98',
             notes: 'Need to change deadline',
           }),
         }),

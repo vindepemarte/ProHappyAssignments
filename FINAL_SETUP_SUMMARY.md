@@ -55,7 +55,7 @@
 2. Files upload to your "Client" folder
 3. Row added to "Form Assignments" sheet:
    ```
-   31/07/2025 20:38:42 | 01/09/2025 | John Doe | CS101 | 5000 | https://drive.google.com/open?id=ABC123, https://drive.google.com/open?id=DEF456 | john@example.com | Additional notes | IVA98
+   31/07/2025 20:38:42 | 01/09/2025 | John Doe | CS101 | 5000 | https://drive.google.com/open?id=IVA983, https://drive.google.com/open?id=DEF456 | john@example.com | Additional notes | IVA98
    ```
 4. Your n8n workflow triggers automatically!
 

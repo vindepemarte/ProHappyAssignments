@@ -46,7 +46,7 @@ export const createMockFormData = () => ({
     assignmentFiles: [createMockFile()]
   },
   changes: {
-    referenceCode: 'ABC12',
+    referenceCode: 'IVA98',
     email: 'john@example.com',
     orderReferenceNumber: 'ORD123',
     notes: 'Need to change deadline',

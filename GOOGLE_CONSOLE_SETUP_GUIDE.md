@@ -104,7 +104,7 @@ VITE_GOOGLE_WORKER_FOLDER_ID=1HVIzeZ-G7zCUytfKDntkAvec5CC46oXCDL3IMrQ7x5iYhY2X8f
 1. **Files upload** → Your "Client" Google Drive folder
 2. **Row added** to "Form Assignments" sheet:
    ```
-   31/07/2025 20:38:42 | 01/09/2025 | John Doe | CS101 | 5000 | https://drive.google.com/open?id=ABC123, https://drive.google.com/open?id=DEF456 | john@example.com | Additional notes | IVA98
+   31/07/2025 20:38:42 | 01/09/2025 | John Doe | CS101 | 5000 | https://drive.google.com/open?id=IVA983, https://drive.google.com/open?id=DEF456 | john@example.com | Additional notes | IVA98
    ```
 3. **Your n8n workflow triggers** automatically!
 

@@ -6,7 +6,7 @@ import { submitAssignmentForm } from '../services';
 import type { AssignmentFormData } from '../types';
 
 // Valid access codes for validation
-const VALID_ACCESS_CODES = ['IVA98', 'ABC12', 'XYZ34', 'DEF56', 'GHI78', 'JKL90'];
+const VALID_ACCESS_CODES = ['IVA98', 'IVA98', 'XYZ34', 'DEF56', 'GHI78', 'JKL90'];
 
 export const AssignmentForm: React.FC = () => {
   const [isCodeValidated, setIsCodeValidated] = useState(false);
