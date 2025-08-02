@@ -48,11 +48,9 @@ const handleApiRequest = async (req, res) => {
     console.log('Testing environment variables');
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      hasClientEmail: !!process.env.VITE_GOOGLE_CLIENT_EMAIL,
-      hasPrivateKey: !!process.env.VITE_GOOGLE_PRIVATE_KEY,
-      clientEmail: process.env.VITE_GOOGLE_CLIENT_EMAIL,
-      privateKeyLength: process.env.VITE_GOOGLE_PRIVATE_KEY?.length,
-      privateKeyStart: process.env.VITE_GOOGLE_PRIVATE_KEY?.substring(0, 50),
+      hasAppsScriptUrl: !!process.env.VITE_GOOGLE_APPS_SCRIPT_URL,
+      appsScriptUrl: process.env.VITE_GOOGLE_APPS_SCRIPT_URL,
+      allEnvVars: Object.keys(process.env).filter(key => key.startsWith('VITE_')),
     }));
     return;
   }

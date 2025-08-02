@@ -1,22 +1,40 @@
 // Simple Google Apps Script integration - NO MORE API HEADACHES!
 import axios from 'axios';
+import type { AssignmentFormData, ChangesFormData, WorkerFormData } from '../types';
 
 interface GoogleAppsScriptConfig {
   webAppUrl: string;
 }
 
+interface FileData {
+  name: string;
+  type: string;
+  data: string;
+}
+
+type FormData = AssignmentFormData | ChangesFormData | WorkerFormData;
+
 class GoogleDriveService {
   private config: GoogleAppsScriptConfig;
 
   constructor() {
+    // TEMPORARY HARDCODED URL - REPLACE WITH ENV VAR WHEN WORKING
+    const hardcodedUrl = 'https://script.google.com/macros/s/AKfycbyJlgIWIaYVhJvxelpg6wOX4FaFz_LUe7W08vFG8e5kR8KMyEbj9wJKDmzgd3yPtSUV/exec';
+
     this.config = {
-      // You'll set this after creating the Google Apps Script
-      webAppUrl: import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || '',
+      // Try environment variable first, then fallback to hardcoded
+      webAppUrl: import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || hardcodedUrl,
     };
+
+    // Debug logging
+    console.log('GoogleDriveService initialized');
+    console.log('Environment variable VITE_GOOGLE_APPS_SCRIPT_URL:', import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL);
+    console.log('Using webAppUrl:', this.config.webAppUrl);
+    console.log('All environment variables:', import.meta.env);
   }
 
   // Convert File to base64 for Google Apps Script
-  private async fileToBase64(file: File): Promise<{ name: string; type: string; data: string }> {
+  private async fileToBase64(file: File): Promise<FileData> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
@@ -33,25 +51,25 @@ class GoogleDriveService {
     });
   }
 
-  async submitForm(data: any, formType: string): Promise<void> {
+  async submitForm(data: FormData, formType: string): Promise<void> {
     try {
       console.log(`Submitting ${formType} form to Google Apps Script...`);
-      
+
       if (!this.config.webAppUrl) {
         throw new Error('Google Apps Script URL not configured. Please set VITE_GOOGLE_APPS_SCRIPT_URL environment variable.');
       }
 
       // Convert files to base64
-      let files: any[] = [];
-      if (data.assignmentFiles && data.assignmentFiles.length > 0) {
+      let files: FileData[] = [];
+      if ('assignmentFiles' in data && data.assignmentFiles && data.assignmentFiles.length > 0) {
         files = await Promise.all(
           data.assignmentFiles.map((file: File) => this.fileToBase64(file))
         );
-      } else if (data.uploadFiles && data.uploadFiles.length > 0) {
+      } else if ('uploadFiles' in data && data.uploadFiles && data.uploadFiles.length > 0) {
         files = await Promise.all(
           data.uploadFiles.map((file: File) => this.fileToBase64(file))
         );
-      } else if (data.uploadSection && data.uploadSection.length > 0) {
+      } else if ('uploadSection' in data && data.uploadSection && data.uploadSection.length > 0) {
         files = await Promise.all(
           data.uploadSection.map((file: File) => this.fileToBase64(file))
         );
@@ -82,17 +100,18 @@ class GoogleDriveService {
       }
     } catch (error) {
       console.error('Google Apps Script error:', error);
-      throw new Error(`Failed to submit form: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new Error(`Failed to submit form: ${errorMessage}`);
     }
   }
 
   // Legacy methods for compatibility - now just call submitForm
-  async uploadFiles(files: File[], formType: string): Promise<string[]> {
+  async uploadFiles(_files: File[], _formType: string): Promise<string[]> {
     // This method is no longer used, but kept for compatibility
     return [];
   }
 
-  async addRowToSheet(data: any, formType: string): Promise<void> {
+  async addRowToSheet(_data: FormData, _formType: string): Promise<void> {
     // This method is no longer used, but kept for compatibility
     // Everything is handled by submitForm now
   }
