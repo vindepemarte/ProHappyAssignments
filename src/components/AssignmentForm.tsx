@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFormValidation } from '../hooks';
 import { assignmentSchema } from '../utils/validation';
-import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessModal, DataCollectionNotice, NetworkErrorHandler, FormErrorSummary, LoadingSpinner } from './';
+import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessModal, DataCollectionNotice, FormErrorSummary, LoadingSpinner } from './';
 import { submitAssignmentForm } from '../services';
 import type { AssignmentFormData } from '../types';
 
@@ -55,7 +55,7 @@ export const AssignmentForm: React.FC = () => {
   // Validate access code
   const validateAccessCode = async () => {
     const code = getValues('accessCode');
-    
+
     if (!code || code.length !== 5) {
       setCodeError('Access code must be exactly 5 characters');
       return;
@@ -89,7 +89,7 @@ export const AssignmentForm: React.FC = () => {
 
     try {
       const result = await submitAssignmentForm(data);
-      
+
       if (result.success) {
         setSubmissionResult({
           title: 'Assignment Submitted Successfully!',
@@ -101,9 +101,9 @@ export const AssignmentForm: React.FC = () => {
       } else {
         setSubmissionError(result.message);
         // Check if it's a network-related error
-        const isNetworkIssue = result.message.toLowerCase().includes('network') || 
-                              result.message.toLowerCase().includes('connection') ||
-                              result.message.toLowerCase().includes('timeout');
+        const isNetworkIssue = result.message.toLowerCase().includes('network') ||
+          result.message.toLowerCase().includes('connection') ||
+          result.message.toLowerCase().includes('timeout');
         setIsNetworkError(isNetworkIssue);
       }
     } catch (error) {
@@ -151,14 +151,14 @@ export const AssignmentForm: React.FC = () => {
           </div>
           <h3 className="text-2xl font-bold text-accent-navy">Access Code Verification</h3>
         </div>
-        
+
         <div className="space-y-4">
           <FormField
             label="Access Code"
             name="accessCode"
             type="text"
             placeholder="Enter 5-character code"
-            error={errors.accessCode}
+            error={errors.accessCode as any}
             required
           >
             <div className="flex items-center gap-2">
@@ -169,13 +169,12 @@ export const AssignmentForm: React.FC = () => {
                 maxLength={5}
                 inputMode="text"
                 autoComplete="off"
-                className={`form-input uppercase text-center font-mono tracking-widest text-xl font-bold flex-1 ${
-                  errors.accessCode || codeError
-                    ? 'border-error focus:border-error focus:ring-error/20 bg-error/5'
-                    : isCodeValidated
+                className={`form-input uppercase text-center font-mono tracking-widest text-xl font-bold flex-1 ${errors.accessCode || codeError
+                  ? 'border-error focus:border-error focus:ring-error/20 bg-error/5'
+                  : isCodeValidated
                     ? 'border-success focus:border-success focus:ring-success/20 bg-success/5'
                     : ''
-                }`}
+                  }`}
                 disabled={isCodeValidated}
                 onChange={(e) => {
                   e.target.value = e.target.value.toUpperCase();
@@ -209,7 +208,7 @@ export const AssignmentForm: React.FC = () => {
               </button>
             </div>
           </FormField>
-          
+
           {codeError && (
             <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
               <p className="text-error font-medium flex items-center">
@@ -217,7 +216,7 @@ export const AssignmentForm: React.FC = () => {
               </p>
             </div>
           )}
-          
+
           {isCodeValidated && (
             <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
               <p className="text-success font-medium flex items-center">
@@ -248,7 +247,7 @@ export const AssignmentForm: React.FC = () => {
               name="fullName"
               type="text"
               placeholder="Enter your full name"
-              error={errors.fullName}
+              error={errors.fullName as any}
               required
               autoComplete="name"
               maxLength={100}
@@ -270,7 +269,7 @@ export const AssignmentForm: React.FC = () => {
               name="email"
               type="email"
               placeholder="Enter your email address"
-              error={errors.email}
+              error={errors.email as any}
               required
               autoComplete="email"
               inputMode="email"
@@ -292,7 +291,7 @@ export const AssignmentForm: React.FC = () => {
               name="moduleName"
               type="text"
               placeholder="Enter module name (e.g., CS101, MATH201)"
-              error={errors.moduleName}
+              error={errors.moduleName as any}
               required
               maxLength={50}
             >
@@ -312,7 +311,7 @@ export const AssignmentForm: React.FC = () => {
               name="wordCount"
               type="number"
               placeholder="Enter word count"
-              error={errors.wordCount}
+              error={errors.wordCount as any}
               required
               inputMode="numeric"
               min={1}
@@ -337,7 +336,7 @@ export const AssignmentForm: React.FC = () => {
               label="📅 Order Deadline"
               name="orderDeadline"
               type="date"
-              error={errors.orderDeadline}
+              error={errors.orderDeadline as any}
               required
               min={new Date().toISOString().split('T')[0]}
             >
@@ -356,7 +355,7 @@ export const AssignmentForm: React.FC = () => {
               name="assignmentFiles"
               files={watchedFiles}
               onChange={handleFileChange}
-              error={errors.assignmentFiles}
+              error={errors.assignmentFiles as any}
               multiple={true}
               maxFiles={5}
               maxSizeInMB={100}
@@ -373,7 +372,7 @@ export const AssignmentForm: React.FC = () => {
               name="guidance"
               type="textarea"
               placeholder="Enter any additional guidance or requirements for your assignment"
-              error={errors.guidance}
+              error={errors.guidance as any}
               maxLength={1000}
             >
               <textarea
@@ -407,7 +406,7 @@ export const AssignmentForm: React.FC = () => {
                 />
                 <div className="flex-1">
                   <label htmlFor="dataProcessingConsent" className="text-sm text-accent-navy cursor-pointer leading-relaxed font-medium">
-                    🔒 I consent to the processing of my personal data as described in the data collection notice above. 
+                    🔒 I consent to the processing of my personal data as described in the data collection notice above.
                     This includes storing and using my information to provide the requested assignment services.
                     <span className="text-error ml-1">*</span>
                   </label>
@@ -439,8 +438,8 @@ export const AssignmentForm: React.FC = () => {
 
           {/* Form Validation Error Summary */}
           {Object.keys(errors).length > 0 && (
-            <FormErrorSummary 
-              errors={errors} 
+            <FormErrorSummary
+              errors={errors}
               className="mb-4"
               title="Please fix the following errors before submitting:"
             />

@@ -26,3 +26,7 @@ export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as ProgressIndicator, CircularProgress } from './ProgressIndicator';
 export { default as LazyImage } from './LazyImage';
 export { LazyFileUpload, LazySuccessModal, LazyTermsModal, LazyPrivacyModal } from './LazyComponents';
+
+// Direct exports for components used in forms
+export { default as FileUpload } from './FileUpload';
+export { default as SuccessModal } from './SuccessModal';
