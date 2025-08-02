@@ -57,16 +57,21 @@ Create a table called "worker_submissions" with these columns:
 3. Copy the token for your .env file
 
 ## Step 4: Get Table IDs
-1. Open each table
+1. Open each table in NocoDB
 2. Look at the URL: `/dashboard/#/nc/{project_id}/{table_id}`
 3. Copy the table IDs for your .env file
+
+**Your current setup:**
+- Base URL: `http://nocodb-oo4kk80wk8gs4kw0ogkkwokc.38.242.151.194.sslip.io`
+- Project ID: `p165c7l1e9c2a3z`
+- API Version: v2
 
 ## Step 5: Configure Environment Variables
 Update your `.env` file:
 ```env
-VITE_NOCODB_BASE_URL=https://your-nocodb-instance.com
+VITE_NOCODB_BASE_URL=http://nocodb-oo4kk80wk8gs4kw0ogkkwokc.38.242.151.194.sslip.io
 VITE_NOCODB_API_TOKEN=your_api_token_here
-VITE_NOCODB_PROJECT_ID=your_project_id_here
+VITE_NOCODB_PROJECT_ID=p165c7l1e9c2a3z
 VITE_NOCODB_ASSIGNMENT_TABLE_ID=your_assignment_table_id_here
 VITE_NOCODB_CHANGES_TABLE_ID=your_changes_table_id_here
 VITE_NOCODB_WORKER_TABLE_ID=your_worker_table_id_here
