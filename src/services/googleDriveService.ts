@@ -32,6 +32,15 @@ class GoogleDriveService {
     }
 
     try {
+      console.log('Attempting Google authentication...');
+      console.log('Client Email:', this.config.clientEmail);
+      console.log('Private Key available:', !!this.config.privateKey);
+      console.log('Private Key length:', this.config.privateKey?.length);
+      
+      if (!this.config.clientEmail || !this.config.privateKey) {
+        throw new Error('Missing Google credentials in environment variables');
+      }
+
       // Use server-side proxy for authentication
       const response = await axios.post('/api/google-auth', {
         clientEmail: this.config.clientEmail,
@@ -39,9 +48,14 @@ class GoogleDriveService {
       });
 
       this.accessToken = response.data.access_token;
+      console.log('Google authentication successful');
       return this.accessToken;
     } catch (error) {
       console.error('Failed to get access token:', error);
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
       throw new Error('Failed to authenticate with Google');
     }
   }

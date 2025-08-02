@@ -44,6 +44,19 @@ const handleApiRequest = async (req, res) => {
   
   console.log(`Checking route - pathname: ${url.pathname}, method: ${req.method}`);
   
+  if (url.pathname === '/api/test-env' && req.method === 'GET') {
+    console.log('Testing environment variables');
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      hasClientEmail: !!process.env.VITE_GOOGLE_CLIENT_EMAIL,
+      hasPrivateKey: !!process.env.VITE_GOOGLE_PRIVATE_KEY,
+      clientEmail: process.env.VITE_GOOGLE_CLIENT_EMAIL,
+      privateKeyLength: process.env.VITE_GOOGLE_PRIVATE_KEY?.length,
+      privateKeyStart: process.env.VITE_GOOGLE_PRIVATE_KEY?.substring(0, 50),
+    }));
+    return;
+  }
+  
   if (url.pathname === '/api/google-auth' && req.method === 'POST') {
     console.log('Processing Google authentication request');
     let body = '';
@@ -54,6 +67,17 @@ const handleApiRequest = async (req, res) => {
     req.on('end', async () => {
       try {
         const { clientEmail, privateKey } = JSON.parse(body);
+        
+        console.log('Client Email:', clientEmail);
+        console.log('Private Key length:', privateKey ? privateKey.length : 'undefined');
+        console.log('Private Key starts with:', privateKey ? privateKey.substring(0, 50) : 'undefined');
+        
+        if (!clientEmail || !privateKey) {
+          throw new Error('Missing clientEmail or privateKey');
+        }
+        
+        // Fix private key formatting - replace \\n with actual newlines
+        const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
         
         // Create JWT for service account authentication
         const jwt = require('jsonwebtoken');
@@ -67,7 +91,7 @@ const handleApiRequest = async (req, res) => {
           iat: now,
         };
         
-        const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+        const assertion = jwt.sign(payload, formattedPrivateKey, { algorithm: 'RS256' });
         
         const response = await fetch('https://oauth2.googleapis.com/token', {
           method: 'POST',
