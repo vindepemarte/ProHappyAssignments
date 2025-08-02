@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFormValidation } from '../hooks';
 import { workerSchema } from '../utils/validation';
-import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessModal, DataCollectionNotice, NetworkErrorHandler, FormErrorSummary, LoadingSpinner } from './';
+import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessModal, DataCollectionNotice, FormErrorSummary, LoadingSpinner } from './';
 import { submitWorkerForm } from '../services';
 import type { WorkerFormData } from '../types';
 
