@@ -56,6 +56,13 @@ const handleApiRequest = async (req, res) => {
       
       let jsonData = null;
       const files = [];
+      const formFields = {};
+      
+      // Handle regular form fields
+      bb.on('field', (name, value) => {
+        console.log(`Received field: ${name} = ${value}`);
+        formFields[name] = value;
+      });
       
       bb.on('file', (name, file, info) => {
         const { filename, mimeType } = info;
@@ -98,19 +105,28 @@ const handleApiRequest = async (req, res) => {
             throw new Error('No JSON data received');
           }
           
-          console.log(`Processing ${jsonData.formType} form with ${files.length} files`);
+          const formType = jsonData?.formType || formFields.formType || 'assignment';
+          console.log(`Processing ${formType} form with ${files.length} files`);
+          console.log('Form fields received:', Object.keys(formFields));
           
           // Get the appropriate webhook URL
-          const webhookUrl = getWebhookUrl(jsonData.formType);
+          const webhookUrl = getWebhookUrl(formType);
           console.log('Forwarding to webhook:', webhookUrl);
           
           // Create new FormData for webhook
           const formData = new FormData.default();
           
-          // Add JSON data as a file
-          formData.append('data.json', JSON.stringify(jsonData, null, 2), {
-            filename: 'data.json',
-            contentType: 'application/json'
+          // Add JSON data as a file (if available)
+          if (jsonData) {
+            formData.append('data.json', JSON.stringify(jsonData, null, 2), {
+              filename: 'data.json',
+              contentType: 'application/json'
+            });
+          }
+          
+          // Add all form fields as regular fields
+          Object.entries(formFields).forEach(([key, value]) => {
+            formData.append(key, value);
           });
           
           // Add all files

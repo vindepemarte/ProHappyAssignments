@@ -247,6 +247,19 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
     });
     formData.append('data.json', jsonBlob, 'data.json');
     
+    // Add form data as regular fields for easy access
+    formData.append('formType', jsonData.formType);
+    formData.append('timestamp', jsonData.timestamp);
+    formData.append('accessCode', data.accessCode);
+    formData.append('fullName', data.fullName);
+    formData.append('email', data.email);
+    formData.append('moduleName', data.moduleName);
+    formData.append('wordCount', data.wordCount.toString());
+    formData.append('orderDeadline', data.orderDeadline);
+    formData.append('guidance', data.guidance || '');
+    formData.append('fileCount', files.length.toString());
+    formData.append('metadata', JSON.stringify(jsonData.metadata));
+    
     // Add actual files
     files.forEach((file, index) => {
       formData.append(`file_${index}`, file, file.name);
@@ -314,6 +327,17 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
     });
     formData.append('data.json', jsonBlob, 'data.json');
     
+    // Add form data as regular fields for easy access
+    formData.append('formType', jsonData.formType);
+    formData.append('timestamp', jsonData.timestamp);
+    formData.append('referenceCode', data.referenceCode);
+    formData.append('email', data.email);
+    formData.append('orderReferenceNumber', data.orderReferenceNumber);
+    formData.append('notes', data.notes);
+    formData.append('deadlineChanges', data.deadlineChanges || '');
+    formData.append('fileCount', files.length.toString());
+    formData.append('metadata', JSON.stringify(jsonData.metadata));
+    
     // Add actual files
     files.forEach((file, index) => {
       formData.append(`file_${index}`, file, file.name);
@@ -379,6 +403,16 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
       type: 'application/json' 
     });
     formData.append('data.json', jsonBlob, 'data.json');
+    
+    // Add form data as regular fields for easy access
+    formData.append('formType', jsonData.formType);
+    formData.append('timestamp', jsonData.timestamp);
+    formData.append('referenceCode', data.referenceCode);
+    formData.append('email', data.email);
+    formData.append('orderReferenceNumber', data.orderReferenceNumber);
+    formData.append('notesForClient', data.notesForClient);
+    formData.append('fileCount', files.length.toString());
+    formData.append('metadata', JSON.stringify(jsonData.metadata));
     
     // Add actual files
     files.forEach((file, index) => {
