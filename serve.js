@@ -26,6 +26,7 @@ const mimeTypes = {
 
 // API handler for form submissions
 const handleApiRequest = async (req, res) => {
+  console.log(`API Handler - Method: ${req.method}, URL: ${req.url}`);
   const url = new URL(req.url, `http://localhost:${port}`);
   
   // Set CORS headers
@@ -35,12 +36,16 @@ const handleApiRequest = async (req, res) => {
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
     res.writeHead(200);
     res.end();
     return;
   }
   
+  console.log(`Checking route - pathname: ${url.pathname}, method: ${req.method}`);
+  
   if (url.pathname === '/api/submit' && req.method === 'POST') {
+    console.log('Processing POST request to /api/submit');
     let body = '';
     req.on('data', chunk => {
       body += chunk.toString();
@@ -106,9 +111,23 @@ const handleApiRequest = async (req, res) => {
     return;
   }
   
-  // 404 for unknown API routes
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ error: 'API endpoint not found' }));
+  // 405 Method Not Allowed for wrong methods, 404 for unknown routes
+  if (url.pathname === '/api/submit') {
+    console.log(`Method ${req.method} not allowed for /api/submit`);
+    res.writeHead(405, { 
+      'Content-Type': 'application/json',
+      'Allow': 'POST, OPTIONS'
+    });
+    res.end(JSON.stringify({ 
+      error: 'Method Not Allowed',
+      message: 'Only POST requests are allowed for this endpoint',
+      allowedMethods: ['POST', 'OPTIONS']
+    }));
+  } else {
+    console.log(`API endpoint not found: ${url.pathname}`);
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'API endpoint not found' }));
+  }
 };
 
 // Get webhook URL based on form type
@@ -122,8 +141,11 @@ const getWebhookUrl = (formType) => {
 };
 
 const server = createServer((req, res) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  
   // Handle API requests
   if (req.url.startsWith('/api/')) {
+    console.log('Routing to API handler');
     return handleApiRequest(req, res);
   }
   

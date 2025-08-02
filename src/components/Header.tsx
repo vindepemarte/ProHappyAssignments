@@ -32,56 +32,56 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="card border-0 shadow-lg m-2 sm:m-4 mb-0 rounded-xl sm:rounded-2xl">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
+      <header className="card border-0 shadow-lg m-2 sm:m-3 lg:m-4 mb-0 rounded-xl sm:rounded-2xl">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex justify-between items-center h-14 sm:h-16 lg:h-18">
             {/* Logo */}
             <div className="flex-shrink-0 min-w-0">
               <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:scale-105 transition-transform duration-300">
-                <Logo size="sm" className="sm:w-12 sm:h-12 lg:w-16 lg:h-16" />
-                <span className="text-sm sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
+                <Logo size="sm" className="sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
+                <span className="text-sm sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent truncate">
                   ProHappyAssignments
                 </span>
               </Link>
             </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-1 lg:space-x-2">
+          <nav className="hidden md:flex space-x-1">
             <Link
               to="/"
-              className={`px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 location.pathname === '/'
-                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg transform scale-105'
-                  : 'text-accent-navy hover:bg-gradient-to-r hover:from-accent-yellow hover:to-accent-red hover:text-white hover:shadow-md hover:scale-105'
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
+                  : 'text-accent-navy hover:bg-gray-100 hover:text-primary'
               }`}
             >
               Home
             </Link>
             <Link
               to="/forms"
-              className={`px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold transition-all duration-300 ${
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 location.pathname === '/forms'
-                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg transform scale-105'
-                  : 'text-accent-navy hover:bg-gradient-to-r hover:from-accent-yellow hover:to-accent-red hover:text-white hover:shadow-md hover:scale-105'
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-md'
+                  : 'text-accent-navy hover:bg-gray-100 hover:text-primary'
               }`}
             >
               Forms
             </Link>
             <button
               onClick={handleTermsClick}
-              className="px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold text-accent-navy hover:bg-gradient-to-r hover:from-accent-purple hover:to-primary hover:text-white hover:shadow-md hover:scale-105 transition-all duration-300"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-accent-navy hover:bg-gray-100 hover:text-primary transition-all duration-200"
             >
               Terms
             </button>
             <button
               onClick={handlePrivacyClick}
-              className="px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold text-accent-navy hover:bg-gradient-to-r hover:from-accent-purple hover:to-primary hover:text-white hover:shadow-md hover:scale-105 transition-all duration-300"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-accent-navy hover:bg-gray-100 hover:text-primary transition-all duration-200"
             >
               Privacy
             </button>
             <button
               onClick={handleInstallClick}
-              className="px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-semibold text-accent-navy hover:bg-gradient-to-r hover:from-primary hover:to-secondary hover:text-white hover:shadow-md hover:scale-105 transition-all duration-300"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-accent-navy hover:bg-gray-100 hover:text-primary transition-all duration-200 flex items-center gap-1"
             >
               📱 Install
             </button>
@@ -91,15 +91,15 @@ const Header: React.FC = () => {
           <div className="md:hidden flex-shrink-0">
             <button
               onClick={toggleMobileMenu}
-              className="inline-flex items-center justify-center p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-accent-yellow to-accent-red text-white hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary/30 active:scale-95 transition-all duration-300 min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px]"
+              className="inline-flex items-center justify-center p-2 rounded-lg bg-primary text-white hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-200 min-h-[40px] min-w-[40px]"
               aria-expanded={isMobileMenuOpen}
               aria-label={isMobileMenuOpen ? "Close main menu" : "Open main menu"}
             >
               <span className="sr-only">{isMobileMenuOpen ? "Close main menu" : "Open main menu"}</span>
               {isMobileMenuOpen ? (
-                <X className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                <X className="block h-5 w-5" aria-hidden="true" />
               ) : (
-                <Menu className="block h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                <Menu className="block h-5 w-5" aria-hidden="true" />
               )}
             </button>
           </div>
