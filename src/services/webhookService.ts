@@ -231,28 +231,45 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
 
     const payload = webhookConfig.createN8nPayload('assignment', payloadData);
 
-    // Use local API endpoint to avoid CORS issues
-    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
-    const response = await axios.post(apiUrl, {
-      ...payload,
-      formType: 'assignment'
-    }, {
-      timeout: webhookConfig.getTimeout(),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Handle successful response
-    if (response.status >= 200 && response.status < 300) {
-      return {
-        success: true,
-        message: response.data.message || 'Assignment submitted successfully! You will receive an email with updates.',
-        orderId: response.data.orderId || `ASG-${Date.now()}`,
-      };
+    // In development, use local API. In production, call webhook directly
+    if (import.meta.env.DEV) {
+      const response = await axios.post('http://localhost:3001/api/submit', {
+        ...payload,
+        formType: 'assignment'
+      }, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: response.data.message || 'Assignment submitted successfully! You will receive an email with updates.',
+          orderId: response.data.orderId || `ASG-${Date.now()}`,
+        };
+      }
     } else {
-      throw new Error(`Unexpected response status: ${response.status}`);
+      // Production: Call webhook directly
+      const webhookUrl = webhookConfig.getAssignmentWebhookUrl();
+      const response = await axios.post(webhookUrl, payload, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: 'Assignment submitted successfully! You will receive an email with updates.',
+          orderId: `ASG-${Date.now()}`,
+        };
+      }
     }
+    
+    throw new Error('No response received');
   } catch (error) {
     return handleWebhookError(error, 'Assignment');
   }
@@ -272,28 +289,45 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
 
     const payload = webhookConfig.createN8nPayload('changes', payloadData);
 
-    // Use local API endpoint to avoid CORS issues
-    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
-    const response = await axios.post(apiUrl, {
-      ...payload,
-      formType: 'changes'
-    }, {
-      timeout: webhookConfig.getTimeout(),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Handle successful response
-    if (response.status >= 200 && response.status < 300) {
-      return {
-        success: true,
-        message: response.data.message || 'Change request submitted successfully! You will receive an email with updates.',
-        orderId: response.data.orderId || `CHG-${Date.now()}`,
-      };
+    // In development, use local API. In production, call webhook directly
+    if (import.meta.env.DEV) {
+      const response = await axios.post('http://localhost:3001/api/submit', {
+        ...payload,
+        formType: 'changes'
+      }, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: response.data.message || 'Change request submitted successfully! You will receive an email with updates.',
+          orderId: response.data.orderId || `CHG-${Date.now()}`,
+        };
+      }
     } else {
-      throw new Error(`Unexpected response status: ${response.status}`);
+      // Production: Call webhook directly
+      const webhookUrl = webhookConfig.getChangesWebhookUrl();
+      const response = await axios.post(webhookUrl, payload, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: 'Change request submitted successfully! You will receive an email with updates.',
+          orderId: `CHG-${Date.now()}`,
+        };
+      }
     }
+    
+    throw new Error('No response received');
   } catch (error) {
     return handleWebhookError(error, 'Changes');
   }
@@ -312,28 +346,45 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
 
     const payload = webhookConfig.createN8nPayload('worker', payloadData);
 
-    // Use local API endpoint to avoid CORS issues
-    const apiUrl = import.meta.env.DEV ? 'http://localhost:3001/api/submit' : '/api/submit';
-    const response = await axios.post(apiUrl, {
-      ...payload,
-      formType: 'worker'
-    }, {
-      timeout: webhookConfig.getTimeout(),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Handle successful response
-    if (response.status >= 200 && response.status < 300) {
-      return {
-        success: true,
-        message: response.data.message || 'Work submitted successfully! You will receive an email with updates.',
-        orderId: response.data.orderId || `WRK-${Date.now()}`,
-      };
+    // In development, use local API. In production, call webhook directly
+    if (import.meta.env.DEV) {
+      const response = await axios.post('http://localhost:3001/api/submit', {
+        ...payload,
+        formType: 'worker'
+      }, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: response.data.message || 'Work submitted successfully! You will receive an email with updates.',
+          orderId: response.data.orderId || `WRK-${Date.now()}`,
+        };
+      }
     } else {
-      throw new Error(`Unexpected response status: ${response.status}`);
+      // Production: Call webhook directly
+      const webhookUrl = webhookConfig.getWorkerWebhookUrl();
+      const response = await axios.post(webhookUrl, payload, {
+        timeout: webhookConfig.getTimeout(),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status >= 200 && response.status < 300) {
+        return {
+          success: true,
+          message: 'Work submitted successfully! You will receive an email with updates.',
+          orderId: `WRK-${Date.now()}`,
+        };
+      }
     }
+    
+    throw new Error('No response received');
   } catch (error) {
     return handleWebhookError(error, 'Worker');
   }
