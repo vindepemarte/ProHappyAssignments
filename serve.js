@@ -117,6 +117,81 @@ const handleApiRequest = async (req, res) => {
     return;
   }
   
+  // NocoDB proxy to handle CORS issues
+  if (url.pathname.startsWith('/api/nocodb/') && req.method === 'POST') {
+    console.log('Processing NocoDB proxy request');
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', async () => {
+      try {
+        const formData = JSON.parse(body);
+        const { baseUrl, apiToken, projectId, tableId, data } = formData;
+        
+        console.log('NocoDB proxy - forwarding to:', `${baseUrl}/api/v1/db/data/noco/${projectId}/${tableId}`);
+        
+        // Create FormData for NocoDB
+        const form = new FormData();
+        
+        // Add all data fields
+        Object.entries(data).forEach(([key, value]) => {
+          if (key !== 'files') {
+            form.append(key, value);
+          }
+        });
+        
+        // Add files if present
+        if (data.files && Array.isArray(data.files)) {
+          data.files.forEach((file, index) => {
+            // Files would need to be handled differently in a real proxy
+            // For now, we'll skip file handling in the proxy
+            console.log(`File ${index}: ${file.name}`);
+          });
+        }
+        
+        const response = await fetch(`${baseUrl}/api/v1/db/data/noco/${projectId}/${tableId}`, {
+          method: 'POST',
+          headers: {
+            'xc-token': apiToken,
+            'Accept': 'application/json',
+          },
+          body: form
+        });
+        
+        console.log('NocoDB response status:', response.status);
+        
+        if (response.ok) {
+          const result = await response.json();
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: true,
+            message: 'Data submitted successfully to NocoDB!',
+            data: result
+          }));
+        } else {
+          const errorText = await response.text();
+          console.error('NocoDB error:', errorText);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: false,
+            message: `NocoDB error: ${response.status} ${response.statusText}`,
+            error: errorText
+          }));
+        }
+      } catch (error) {
+        console.error('NocoDB proxy error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: false,
+          message: 'Server proxy error occurred'
+        }));
+      }
+    });
+    return;
+  }
+
   if (url.pathname === '/api/google-submit' && req.method === 'POST') {
     console.log('Processing secure Google submission via server proxy');
     let body = '';
