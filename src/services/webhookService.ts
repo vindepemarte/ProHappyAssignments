@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import type { AssignmentFormData, ChangesFormData, WorkerFormData, WebhookResponse } from '../types';
 import { webhookConfig } from './webhookConfig';
+import { googleDriveService } from './googleDriveService';
 
 // Retry configuration interface
 interface RetryConfig {
@@ -222,239 +223,114 @@ const handleWebhookError = (error: unknown, formType: string): WebhookResponse =
   };
 };
 
-// Assignment form submission
+// Assignment form submission - Direct Google Drive + Sheets
 export const submitAssignmentForm = async (data: AssignmentFormData): Promise<WebhookResponse> => {
   try {
     const files = prepareFiles(data.assignmentFiles || []);
     
-    // Create structured JSON data
-    const jsonData = createWebhookJsonData('assignment', {
-      accessCode: data.accessCode,
-      fullName: data.fullName,
-      email: data.email,
-      moduleName: data.moduleName,
-      wordCount: data.wordCount,
-      orderDeadline: data.orderDeadline,
-      guidance: data.guidance,
-    }, files);
-    
-    // Create FormData for multipart upload
-    const formData = new FormData();
-    
-    // Add JSON data as a file
-    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
-      type: 'application/json' 
-    });
-    formData.append('data.json', jsonBlob, 'data.json');
-    
-    // Add form data as regular fields for easy access
-    formData.append('formType', jsonData.formType);
-    formData.append('timestamp', jsonData.timestamp);
-    formData.append('accessCode', data.accessCode);
-    formData.append('fullName', data.fullName);
-    formData.append('email', data.email);
-    formData.append('moduleName', data.moduleName);
-    formData.append('wordCount', data.wordCount.toString());
-    formData.append('orderDeadline', data.orderDeadline);
-    formData.append('guidance', data.guidance || '');
-    formData.append('fileCount', files.length.toString());
-    formData.append('metadata', JSON.stringify(jsonData.metadata));
-    
-    // Add actual files
-    files.forEach((file, index) => {
-      formData.append(`file_${index}`, file, file.name);
-    });
-
-    // In development, use local API. In production, call webhook directly
-    if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Assignment submitted successfully! You will receive email updates about your assignment progress and completion.',
-        };
-      }
-    } else {
-      // Production: Call webhook directly
-      const webhookUrl = webhookConfig.getAssignmentWebhookUrl();
-      const response = await axios.post(webhookUrl, formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Assignment submitted successfully! You will receive email updates about your assignment progress and completion.',
-        };
-      }
+    // Upload files to Google Drive
+    let fileUrls: string[] = [];
+    if (files.length > 0) {
+      console.log(`Uploading ${files.length} files to Google Drive...`);
+      fileUrls = await googleDriveService.uploadFiles(files, 'assignment');
+      console.log('Files uploaded successfully:', fileUrls);
     }
     
-    throw new Error('No response received');
+    // Prepare data for Google Sheet
+    const sheetData = {
+      ...data,
+      assignmentFiles: fileUrls.join(', '), // Comma-separated URLs
+    };
+    
+    // Add row to Google Sheet
+    console.log('Adding row to Google Sheet...');
+    await googleDriveService.addRowToSheet(sheetData, 'assignment');
+    console.log('Row added successfully to Google Sheet');
+    
+    return {
+      success: true,
+      message: 'Assignment submitted successfully! Files uploaded to Google Drive and data added to spreadsheet. You will receive email updates about your assignment progress.',
+    };
   } catch (error) {
-    return handleWebhookError(error, 'Assignment');
+    console.error('Assignment submission error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to submit assignment. Please try again.',
+    };
   }
 };
 
-// Changes form submission
+// Changes form submission - Direct Google Drive + Sheets
 export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookResponse> => {
   try {
     const files = prepareFiles(data.uploadFiles || []);
     
-    // Create structured JSON data
-    const jsonData = createWebhookJsonData('changes', {
-      referenceCode: data.referenceCode,
-      email: data.email,
-      orderReferenceNumber: data.orderReferenceNumber,
-      notes: data.notes,
-      deadlineChanges: data.deadlineChanges,
-    }, files);
-    
-    // Create FormData for multipart upload
-    const formData = new FormData();
-    
-    // Add JSON data as a file
-    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
-      type: 'application/json' 
-    });
-    formData.append('data.json', jsonBlob, 'data.json');
-    
-    // Add form data as regular fields for easy access
-    formData.append('formType', jsonData.formType);
-    formData.append('timestamp', jsonData.timestamp);
-    formData.append('referenceCode', data.referenceCode);
-    formData.append('email', data.email);
-    formData.append('orderReferenceNumber', data.orderReferenceNumber);
-    formData.append('notes', data.notes);
-    formData.append('deadlineChanges', data.deadlineChanges || '');
-    formData.append('fileCount', files.length.toString());
-    formData.append('metadata', JSON.stringify(jsonData.metadata));
-    
-    // Add actual files
-    files.forEach((file, index) => {
-      formData.append(`file_${index}`, file, file.name);
-    });
-
-    // In development, use local API. In production, call webhook directly
-    if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Change request submitted successfully! You will receive email updates about your request progress.',
-        };
-      }
-    } else {
-      // Production: Call webhook directly
-      const webhookUrl = webhookConfig.getChangesWebhookUrl();
-      const response = await axios.post(webhookUrl, formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Change request submitted successfully! You will receive email updates about your request progress.',
-        };
-      }
+    // Upload files to Google Drive
+    let fileUrls: string[] = [];
+    if (files.length > 0) {
+      console.log(`Uploading ${files.length} files to Google Drive...`);
+      fileUrls = await googleDriveService.uploadFiles(files, 'changes');
+      console.log('Files uploaded successfully:', fileUrls);
     }
     
-    throw new Error('No response received');
+    // Prepare data for Google Sheet
+    const sheetData = {
+      ...data,
+      uploadFiles: fileUrls.join(', '), // Comma-separated URLs
+    };
+    
+    // Add row to Google Sheet
+    console.log('Adding row to Google Sheet...');
+    await googleDriveService.addRowToSheet(sheetData, 'changes');
+    console.log('Row added successfully to Google Sheet');
+    
+    return {
+      success: true,
+      message: 'Change request submitted successfully! Files uploaded to Google Drive and data added to spreadsheet. You will receive email updates about your request progress.',
+    };
   } catch (error) {
-    return handleWebhookError(error, 'Changes');
+    console.error('Changes submission error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to submit change request. Please try again.',
+    };
   }
 };
 
-// Worker form submission
+// Worker form submission - Direct Google Drive + Sheets
 export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookResponse> => {
   try {
     const files = prepareFiles(data.uploadSection || []);
     
-    // Create structured JSON data
-    const jsonData = createWebhookJsonData('worker', {
-      referenceCode: data.referenceCode,
-      email: data.email,
-      orderReferenceNumber: data.orderReferenceNumber,
-      notesForClient: data.notesForClient,
-    }, files);
-    
-    // Create FormData for multipart upload
-    const formData = new FormData();
-    
-    // Add JSON data as a file
-    const jsonBlob = new Blob([JSON.stringify(jsonData, null, 2)], { 
-      type: 'application/json' 
-    });
-    formData.append('data.json', jsonBlob, 'data.json');
-    
-    // Add form data as regular fields for easy access
-    formData.append('formType', jsonData.formType);
-    formData.append('timestamp', jsonData.timestamp);
-    formData.append('referenceCode', data.referenceCode);
-    formData.append('email', data.email);
-    formData.append('orderReferenceNumber', data.orderReferenceNumber);
-    formData.append('notesForClient', data.notesForClient);
-    formData.append('fileCount', files.length.toString());
-    formData.append('metadata', JSON.stringify(jsonData.metadata));
-    
-    // Add actual files
-    files.forEach((file, index) => {
-      formData.append(`file_${index}`, file, file.name);
-    });
-
-    // In development, use local API. In production, call webhook directly
-    if (import.meta.env.DEV) {
-      const response = await axios.post('http://localhost:3001/api/submit', formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Work submitted successfully! You will receive email updates about the submission status.',
-        };
-      }
-    } else {
-      // Production: Call webhook directly
-      const webhookUrl = webhookConfig.getWorkerWebhookUrl();
-      const response = await axios.post(webhookUrl, formData, {
-        timeout: webhookConfig.getTimeout(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      if (response.status >= 200 && response.status < 300) {
-        return {
-          success: true,
-          message: 'Work submitted successfully! You will receive email updates about the submission status.',
-        };
-      }
+    // Upload files to Google Drive
+    let fileUrls: string[] = [];
+    if (files.length > 0) {
+      console.log(`Uploading ${files.length} files to Google Drive...`);
+      fileUrls = await googleDriveService.uploadFiles(files, 'worker');
+      console.log('Files uploaded successfully:', fileUrls);
     }
     
-    throw new Error('No response received');
+    // Prepare data for Google Sheet
+    const sheetData = {
+      ...data,
+      uploadSection: fileUrls.join(', '), // Comma-separated URLs
+    };
+    
+    // Add row to Google Sheet
+    console.log('Adding row to Google Sheet...');
+    await googleDriveService.addRowToSheet(sheetData, 'worker');
+    console.log('Row added successfully to Google Sheet');
+    
+    return {
+      success: true,
+      message: 'Work submitted successfully! Files uploaded to Google Drive and data added to spreadsheet. You will receive email updates about the submission status.',
+    };
   } catch (error) {
-    return handleWebhookError(error, 'Worker');
+    console.error('Worker submission error:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Failed to submit work. Please try again.',
+    };
   }
 };
 

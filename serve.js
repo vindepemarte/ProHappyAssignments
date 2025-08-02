@@ -44,6 +44,61 @@ const handleApiRequest = async (req, res) => {
   
   console.log(`Checking route - pathname: ${url.pathname}, method: ${req.method}`);
   
+  if (url.pathname === '/api/google-auth' && req.method === 'POST') {
+    console.log('Processing Google authentication request');
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', async () => {
+      try {
+        const { clientEmail, privateKey } = JSON.parse(body);
+        
+        // Create JWT for service account authentication
+        const jwt = require('jsonwebtoken');
+        const now = Math.floor(Date.now() / 1000);
+        
+        const payload = {
+          iss: clientEmail,
+          scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
+          aud: 'https://oauth2.googleapis.com/token',
+          exp: now + 3600, // 1 hour
+          iat: now,
+        };
+        
+        const assertion = jwt.sign(payload, privateKey, { algorithm: 'RS256' });
+        
+        const response = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            assertion: assertion,
+          }),
+        });
+        
+        const tokenData = await response.json();
+        
+        if (response.ok) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(tokenData));
+        } else {
+          console.error('Google auth error:', tokenData);
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Authentication failed' }));
+        }
+      } catch (error) {
+        console.error('Google auth error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+    });
+    return;
+  }
+  
   if (url.pathname === '/api/submit' && req.method === 'POST') {
     console.log('Processing POST request to /api/submit with FormData + JSON');
     

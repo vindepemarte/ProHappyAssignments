@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormValidation } from '../hooks';
 import { assignmentSchema } from '../utils/validation';
 import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessModal, DataCollectionNotice, NetworkErrorHandler, FormErrorSummary, LoadingSpinner } from './';
 import { submitAssignmentForm } from '../services';
 import type { AssignmentFormData } from '../types';
 
-// Mock access codes for validation (in real app, this would be API call)
-const VALID_ACCESS_CODES = ['ABC12', 'XYZ34', 'DEF56', 'GHI78', 'JKL90'];
+// Valid access codes for validation
+const VALID_ACCESS_CODES = ['IVA98', 'ABC12', 'XYZ34', 'DEF56', 'GHI78', 'JKL90'];
 
 export const AssignmentForm: React.FC = () => {
   const [isCodeValidated, setIsCodeValidated] = useState(false);
@@ -30,7 +30,7 @@ export const AssignmentForm: React.FC = () => {
     setValue,
     getValues,
   } = useFormValidation(assignmentSchema, {
-    accessCode: '',
+    accessCode: 'IVA98', // Default access code
     fullName: '',
     email: '',
     moduleName: '',
@@ -44,6 +44,13 @@ export const AssignmentForm: React.FC = () => {
 
   const watchedFiles = watch('assignmentFiles') || [];
   const accessCode = watch('accessCode');
+
+  // Auto-validate the default access code on component mount
+  useEffect(() => {
+    if (accessCode === 'IVA98' && !isCodeValidated) {
+      setIsCodeValidated(true);
+    }
+  }, [accessCode, isCodeValidated]);
 
   // Validate access code
   const validateAccessCode = async () => {
