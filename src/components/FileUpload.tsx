@@ -225,19 +225,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   }, [enableCamera]);
 
   const getAcceptAttribute = useCallback(() => {
-    const baseAccept = ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif";
-    if (isMobile && enableCamera) {
-      return `${baseAccept},image/*`;
-    }
-    return baseAccept;
-  }, [isMobile, enableCamera]);
+    // Always prioritize document files, images are secondary
+    return ".pdf,.doc,.docx,.txt,.rtf,.odt,.pages,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z,.jpg,.jpeg,.png,.gif,.webp";
+  }, []);
 
   const getCaptureAttribute = useCallback(() => {
-    if (isMobile && enableCamera) {
-      return "environment"; // Use back camera by default
-    }
+    // Never auto-capture, always let user choose
     return undefined;
-  }, [isMobile, enableCamera]);
+  }, []);
 
   const labelClasses = `block text-sm font-medium mb-1 ${
     hasError(error) ? 'text-red-700' : 'text-gray-700'
@@ -333,13 +328,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <p id={`${name}-description`} className={`text-gray-500 ${
             isMobile ? 'text-sm' : 'text-xs'
           }`}>
-            PDF, Word, text, or image files up to {maxSizeInMB}MB each
+            PDF, Word, Excel, PowerPoint, text, or image files up to {maxSizeInMB}MB each
             {multiple && ` (max ${maxFiles} files)`}
-            {isMobile && enableCamera && (
-              <span className="block mt-1 text-[#1d0fdb] font-medium">
-                Camera and photo library supported
-              </span>
-            )}
           </p>
         </div>
       </div>
@@ -350,17 +340,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <button
             type="button"
             onClick={openFileDialog}
-            className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1d0fdb] focus:ring-offset-2 transition-colors duration-200"
+            className="flex items-center justify-center px-4 py-3 bg-[#4ECDC4] text-white rounded-lg text-sm font-medium hover:bg-[#2E86AB] focus:outline-none focus:ring-2 focus:ring-[#4ECDC4] focus:ring-offset-2 transition-colors duration-200"
           >
             <File className="h-4 w-4 mr-2" />
-            Choose Files
+            Browse Files
           </button>
           
           {enableCamera && (
             <button
               type="button"
               onClick={openCameraDialog}
-              className="flex items-center justify-center px-4 py-3 bg-[#1d0fdb] text-white rounded-lg text-sm font-medium hover:bg-[#2f3b65] focus:outline-none focus:ring-2 focus:ring-[#1d0fdb] focus:ring-offset-2 transition-colors duration-200"
+              className="flex items-center justify-center px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#4ECDC4] focus:ring-offset-2 transition-colors duration-200"
             >
               <Upload className="h-4 w-4 mr-2" />
               Take Photo
