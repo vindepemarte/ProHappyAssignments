@@ -1,35 +1,40 @@
 import { NocoDBService } from './nocodbService';
 import type { AssignmentFormData, ChangesFormData, WorkerFormData, WebhookResponse } from '../types';
 
-// NocoDB service instances
+// NocoDB service instances - using Coolify environment variables
 const assignmentNocoService = new NocoDBService({
-  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL || 'http://nocodb-oo4kk80wk8gs4kw0ogkkwokc.38.242.151.194.sslip.io',
-  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN || '',
-  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID || 'p165c7l1e9c2a3z',
-  tableId: import.meta.env.VITE_NOCODB_ASSIGNMENT_TABLE_ID || '',
+  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL,
+  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN,
+  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID,
+  tableId: import.meta.env.VITE_NOCODB_ASSIGNMENT_TABLE_ID,
 });
 
 const changesNocoService = new NocoDBService({
-  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL || 'http://nocodb-oo4kk80wk8gs4kw0ogkkwokc.38.242.151.194.sslip.io',
-  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN || '',
-  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID || 'p165c7l1e9c2a3z',
-  tableId: import.meta.env.VITE_NOCODB_CHANGES_TABLE_ID || '',
+  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL,
+  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN,
+  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID,
+  tableId: import.meta.env.VITE_NOCODB_CHANGES_TABLE_ID,
 });
 
 const workerNocoService = new NocoDBService({
-  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL || 'http://nocodb-oo4kk80wk8gs4kw0ogkkwokc.38.242.151.194.sslip.io',
-  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN || '',
-  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID || 'p165c7l1e9c2a3z',
-  tableId: import.meta.env.VITE_NOCODB_WORKER_TABLE_ID || '',
+  baseUrl: import.meta.env.VITE_NOCODB_BASE_URL,
+  apiToken: import.meta.env.VITE_NOCODB_API_TOKEN,
+  projectId: import.meta.env.VITE_NOCODB_PROJECT_ID,
+  tableId: import.meta.env.VITE_NOCODB_WORKER_TABLE_ID,
 });
 
 // Assignment form submission
 export const submitAssignmentForm = async (data: AssignmentFormData): Promise<WebhookResponse> => {
   try {
     console.log('🚀 Submitting assignment form to NocoDB...');
-    
+    console.log('🔧 Environment variables check:');
+    console.log('   VITE_NOCODB_BASE_URL:', import.meta.env.VITE_NOCODB_BASE_URL);
+    console.log('   VITE_NOCODB_PROJECT_ID:', import.meta.env.VITE_NOCODB_PROJECT_ID);
+    console.log('   VITE_NOCODB_ASSIGNMENT_TABLE_ID:', import.meta.env.VITE_NOCODB_ASSIGNMENT_TABLE_ID);
+    console.log('   VITE_NOCODB_API_TOKEN:', import.meta.env.VITE_NOCODB_API_TOKEN ? 'Present' : 'Missing');
+
     await assignmentNocoService.submitAssignmentForm(data);
-    
+
     return {
       success: true,
       message: 'Assignment submitted successfully! Your data has been saved to the database. You will receive email updates about your assignment progress.',
@@ -47,9 +52,9 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
 export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookResponse> => {
   try {
     console.log('🚀 Submitting changes form to NocoDB...');
-    
+
     await changesNocoService.submitChangesForm(data);
-    
+
     return {
       success: true,
       message: 'Change request submitted successfully! Your request has been saved to the database. You will receive email updates about your request progress.',
@@ -67,9 +72,9 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
 export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookResponse> => {
   try {
     console.log('🚀 Submitting worker form to NocoDB...');
-    
+
     await workerNocoService.submitWorkerForm(data);
-    
+
     return {
       success: true,
       message: 'Work submitted successfully! Your submission has been saved to the database. You will receive email updates about the submission status.',
