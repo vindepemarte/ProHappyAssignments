@@ -48,18 +48,6 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
             {message}
           </p>
 
-          {/* Order ID */}
-          {orderId && (
-            <div className="bg-gray-50 rounded-md p-3 mb-4">
-              <p className="text-sm text-gray-700 text-center">
-                <strong>Reference ID:</strong> {orderId}
-              </p>
-              <p className="text-xs text-gray-500 text-center mt-1">
-                Please save this reference for your records
-              </p>
-            </div>
-          )}
-
           {/* Email Notice */}
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-6">
             <div className="flex items-start">
@@ -73,10 +61,10 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               </svg>
               <div>
                 <p className="text-sm text-blue-800 font-medium">
-                  Email Updates
+                  Stay Tuned!
                 </p>
                 <p className="text-xs text-blue-700 mt-1">
-                  You will receive email updates about your assignment progress and completion.
+                  Please check your email for updates from ProHappyAssignments. We'll keep you informed about your submission status.
                 </p>
               </div>
             </div>

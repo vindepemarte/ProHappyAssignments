@@ -127,6 +127,7 @@ interface SerializedFile {
   size: number;
   type: string;
   lastModified: number;
+  data: string | null; // Base64 encoded file data
 }
 
 // Assignment webhook payload data
@@ -160,14 +161,49 @@ interface WorkerPayloadData {
   files: SerializedFile[];
 }
 
-// Convert File objects to serializable format
-const serializeFiles = (files: File[]): SerializedFile[] => {
-  return files.map(file => ({
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    lastModified: file.lastModified,
-  }));
+// Convert File objects to base64 format for transmission
+const serializeFiles = async (files: File[]): Promise<SerializedFile[]> => {
+  const serializedFiles: SerializedFile[] = [];
+  
+  for (const file of files) {
+    try {
+      const base64Data = await fileToBase64(file);
+      serializedFiles.push({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        data: base64Data, // Add binary data as base64
+      });
+    } catch (error) {
+      console.error(`Failed to serialize file ${file.name}:`, error);
+      // Include file without data if conversion fails
+      serializedFiles.push({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        data: null,
+      });
+    }
+  }
+  
+  return serializedFiles;
+};
+
+// Helper function to convert File to base64
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+      const base64Data = result.split(',')[1];
+      resolve(base64Data);
+    };
+    reader.onerror = error => reject(error);
+  });
 };
 
 // Enhanced error handling function
@@ -226,7 +262,7 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
       wordCount: data.wordCount,
       orderDeadline: data.orderDeadline,
       guidance: data.guidance,
-      files: serializeFiles(data.assignmentFiles || []),
+      files: await serializeFiles(data.assignmentFiles || []),
     };
 
     const payload = webhookConfig.createN8nPayload('assignment', payloadData);
@@ -246,8 +282,7 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: response.data.message || 'Assignment submitted successfully! You will receive an email with updates.',
-          orderId: response.data.orderId || `ASG-${Date.now()}`,
+          message: 'Assignment submitted successfully! You will receive email updates about your assignment progress and completion.',
         };
       }
     } else {
@@ -263,8 +298,7 @@ export const submitAssignmentForm = async (data: AssignmentFormData): Promise<We
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: 'Assignment submitted successfully! You will receive an email with updates.',
-          orderId: `ASG-${Date.now()}`,
+          message: 'Assignment submitted successfully! You will receive email updates about your assignment progress and completion.',
         };
       }
     }
@@ -284,7 +318,7 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
       orderReferenceNumber: data.orderReferenceNumber,
       notes: data.notes,
       deadlineChanges: data.deadlineChanges,
-      files: serializeFiles(data.uploadFiles || []),
+      files: await serializeFiles(data.uploadFiles || []),
     };
 
     const payload = webhookConfig.createN8nPayload('changes', payloadData);
@@ -304,8 +338,7 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: response.data.message || 'Change request submitted successfully! You will receive an email with updates.',
-          orderId: response.data.orderId || `CHG-${Date.now()}`,
+          message: 'Change request submitted successfully! You will receive email updates about your request progress.',
         };
       }
     } else {
@@ -321,8 +354,7 @@ export const submitChangesForm = async (data: ChangesFormData): Promise<WebhookR
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: 'Change request submitted successfully! You will receive an email with updates.',
-          orderId: `CHG-${Date.now()}`,
+          message: 'Change request submitted successfully! You will receive email updates about your request progress.',
         };
       }
     }
@@ -341,7 +373,7 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
       email: data.email,
       orderReferenceNumber: data.orderReferenceNumber,
       notesForClient: data.notesForClient,
-      files: serializeFiles(data.uploadSection || []),
+      files: await serializeFiles(data.uploadSection || []),
     };
 
     const payload = webhookConfig.createN8nPayload('worker', payloadData);
@@ -361,8 +393,7 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: response.data.message || 'Work submitted successfully! You will receive an email with updates.',
-          orderId: response.data.orderId || `WRK-${Date.now()}`,
+          message: 'Work submitted successfully! You will receive email updates about the submission status.',
         };
       }
     } else {
@@ -378,8 +409,7 @@ export const submitWorkerForm = async (data: WorkerFormData): Promise<WebhookRes
       if (response.status >= 200 && response.status < 300) {
         return {
           success: true,
-          message: 'Work submitted successfully! You will receive an email with updates.',
-          orderId: `WRK-${Date.now()}`,
+          message: 'Work submitted successfully! You will receive email updates about the submission status.',
         };
       }
     }

@@ -59,7 +59,7 @@ export const isValidFileType = (file: File): boolean => {
 };
 
 // Helper function to validate file size
-export const isValidFileSize = (file: File, maxSizeInMB: number = 10): boolean => {
+export const isValidFileSize = (file: File, maxSizeInMB: number = 100): boolean => {
   const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
   return file.size <= maxSizeInBytes;
 };

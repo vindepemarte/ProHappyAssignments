@@ -5,8 +5,7 @@ import { FormField, LazyFileUpload as FileUpload, LazySuccessModal as SuccessMod
 import { submitChangesForm } from '../services';
 import type { ChangesFormData } from '../types';
 
-// Mock reference codes for validation (in real app, this would be API call)
-const VALID_REFERENCE_CODES = ['REF12', 'CHG34', 'ORD56', 'REQ78', 'MOD90'];
+// Accept any 5-character reference code (validation happens in n8n workflow)
 
 export const ChangesForm: React.FC = () => {
   const [isCodeValidated, setIsCodeValidated] = useState(false);
@@ -58,15 +57,11 @@ export const ChangesForm: React.FC = () => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (VALID_REFERENCE_CODES.includes(code.toUpperCase())) {
-      setIsCodeValidated(true);
-      setCodeError('');
-      // Auto-populate order reference number when code is validated
-      setValue('orderReferenceNumber', code.toUpperCase(), { shouldValidate: true });
-    } else {
-      setCodeError('Invalid reference code. Please check your code and try again.');
-      setIsCodeValidated(false);
-    }
+    // Accept any 5-character code (validation happens in n8n workflow)
+    setIsCodeValidated(true);
+    setCodeError('');
+    // Auto-populate order reference number when code is validated
+    setValue('orderReferenceNumber', code.toUpperCase(), { shouldValidate: true });
 
     setIsValidatingCode(false);
   };
@@ -145,16 +140,16 @@ export const ChangesForm: React.FC = () => {
           <h3 className="text-2xl font-bold text-accent-navy">Order Reference Verification</h3>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <FormField
-              label="Order Reference Code"
-              name="referenceCode"
-              type="text"
-              placeholder="Enter 5-character reference code"
-              error={errors.referenceCode}
-              required
-            >
+        <div className="space-y-4">
+          <FormField
+            label="Order Reference Code"
+            name="referenceCode"
+            type="text"
+            placeholder="Enter 5-character reference code"
+            error={errors.referenceCode}
+            required
+          >
+            <div className="flex items-center gap-2">
               <input
                 {...register('referenceCode')}
                 type="text"
@@ -162,7 +157,7 @@ export const ChangesForm: React.FC = () => {
                 maxLength={5}
                 inputMode="text"
                 autoComplete="off"
-                className={`form-input uppercase text-center font-mono tracking-widest text-xl font-bold ${
+                className={`form-input uppercase text-center font-mono tracking-widest text-xl font-bold flex-1 ${
                   errors.referenceCode || codeError
                     ? 'border-error focus:border-error focus:ring-error/20 bg-error/5'
                     : isCodeValidated
@@ -181,51 +176,43 @@ export const ChangesForm: React.FC = () => {
                   }
                 }}
               />
-            </FormField>
-
-            {codeError && (
-              <p className="mt-1 text-sm text-red-600">{codeError}</p>
-            )}
-
-            {isCodeValidated && (
-              <p className="mt-1 text-sm text-green-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Reference code verified successfully
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-end">
-            <button
-              type="button"
-              onClick={validateReferenceCode}
-              disabled={!referenceCode || referenceCode.length !== 5 || isValidatingCode || isCodeValidated}
-              className="px-6 py-3 bg-[#1d0fdb] text-white rounded-lg hover:bg-[#2f3b65] focus:outline-none focus:ring-2 focus:ring-[#1d0fdb] focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] text-base font-medium active:bg-[#3a2a5c] whitespace-nowrap"
-            >
-              {isValidatingCode ? (
-                <span className="flex items-center">
-                  <LoadingSpinner size="sm" color="white" className="mr-2" />
-                  <span className="animate-pulse">Validating...</span>
-                </span>
-              ) : isCodeValidated ? (
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <button
+                type="button"
+                onClick={validateReferenceCode}
+                disabled={!referenceCode || referenceCode.length !== 5 || isValidatingCode || isCodeValidated}
+                className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary text-white hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
+                title={isCodeValidated ? "Verified" : "Validate Code"}
+              >
+                {isValidatingCode ? (
+                  <LoadingSpinner size="sm" color="white" />
+                ) : isCodeValidated ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  Verified
-                </span>
-              ) : (
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Validate Code
-                </span>
-              )}
-            </button>
-          </div>
+                )}
+              </button>
+            </div>
+          </FormField>
+
+          {codeError && (
+            <div className="p-3 bg-error/10 border border-error/20 rounded-lg">
+              <p className="text-error font-medium flex items-center">
+                ❌ {codeError}
+              </p>
+            </div>
+          )}
+
+          {isCodeValidated && (
+            <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
+              <p className="text-success font-medium flex items-center">
+                ✅ Reference code verified successfully! 🎉
+              </p>
+            </div>
+          )}
         </div>
       </div>
       {/* Changes Form - Only shown when code is validated */}
@@ -328,7 +315,7 @@ export const ChangesForm: React.FC = () => {
             error={errors.uploadFiles}
             multiple={true}
             maxFiles={5}
-            maxSizeInMB={10}
+            maxSizeInMB={100}
             showProgress={true}
             enableCamera={true}
             mobileOptimized={true}

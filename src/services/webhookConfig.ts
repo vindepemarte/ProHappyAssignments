@@ -25,7 +25,7 @@ export class WebhookConfig {
       VITE_ASSIGNMENT_WEBHOOK_URL: import.meta.env.VITE_ASSIGNMENT_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/client',
       VITE_CHANGES_WEBHOOK_URL: import.meta.env.VITE_CHANGES_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/changes',
       VITE_WORKER_WEBHOOK_URL: import.meta.env.VITE_WORKER_WEBHOOK_URL || 'https://auto.iacovici.it/webhook-test/worker',
-      VITE_FILE_UPLOAD_MAX_SIZE: import.meta.env.VITE_FILE_UPLOAD_MAX_SIZE || '10485760',
+      VITE_FILE_UPLOAD_MAX_SIZE: import.meta.env.VITE_FILE_UPLOAD_MAX_SIZE || '104857600', // 100MB
       VITE_ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT || 'development',
     };
   }
